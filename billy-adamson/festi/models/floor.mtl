@@ -1,0 +1,14 @@
+# Blender 4.1.1 MTL File: 'None'
+# www.blender.org
+
+newmtl graybrick
+Ns 512.000061
+Ka 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+map_Kd graybrick_diffuse
+map_Ks graybrick_specular
+norm graybrick_normal
+

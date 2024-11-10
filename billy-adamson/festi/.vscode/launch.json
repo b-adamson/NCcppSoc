@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/festi.exe",
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "build",
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "ignoreFailures": true,
+                    "text": "-enable-pretty-printing"
+                }
+            ],
+            "miDebuggerPath": "C:/msys64/mingw64/bin/gdb.exe",
+            "logging": {
+                "engineLogging": false
+            },
+            
+        }
+    ]
+}
