@@ -29,7 +29,8 @@ enum KeyFrameFlags {
     FS_KEYFRAME_POINT_LIGHT = 1 << 2,
     FS_KEYFRAME_AS_INSTANCE = 1 << 3,
     FS_KEYFRAME_WORLD = 1 << 4,
-    FS_KEYFRAME_VISIBILITY = 1 << 5
+    FS_KEYFRAME_VISIBILITY = 1 << 5,
+    FS_KEYFRAME_BUILDING = 1 << 6
 };
 
 inline KeyFrameFlags operator|(KeyFrameFlags lhs, KeyFrameFlags rhs) {
@@ -122,18 +123,34 @@ public:
         float randomness = 1.f;
         Transform minOffset;
         Transform maxOffset;
+        uint32_t layers = 1;
+        float layerSeparation = 1.f;
 
         void makeStandAlone() {*this = AsInstanceData{};}
 
         bool operator==(const AsInstanceData& other) const {
             return (parentObject == other.parentObject) && (density == other.density) 
                 && (seed == other.seed) && (randomness == other.randomness) 
-                && (minOffset == other.minOffset) && (maxOffset == other.maxOffset);}
+                && (minOffset == other.minOffset) && (maxOffset == other.maxOffset)
+                && (layers == other.layers) && (layerSeparation == other.layerSeparation);}
 
         bool operator!=(const AsInstanceData& other) const {
             return !(*this == other);}
-
     } asInstanceData;
+
+    // struct BuildingData {
+    //     std::shared_ptr<FS_Model> maskObject = nullptr;
+    //     uint32_t rows = 1;
+    //     uint32_t columns = 1;
+    //     float rowSeparation = 1.f;
+    //     float columnSeparation = 1.f;
+    
+    //     bool operator==(const BuildingData& other) const {
+    //         return (storeys == other.storeys) && (storeyHeight == other.storeyHeight);}
+
+    //     bool operator!=(const BuildingData& other) const {
+    //         return !(*this == other);}
+    // } buildingData;
 
     struct KeyFrames {
         // keyframeable properties
@@ -143,6 +160,7 @@ public:
         FS_KeyframeMap_t<AsInstanceData> asInstanceData; // FS_KEYFRAME_AS_INSTANCE
         FS_KeyframeMap_t<WorldProperties> worldProperties; // FS_KEYFRAME_WORLD
         FS_KeyframeMap_t<bool> visibility; // FS_KEYFRAME_VISIBILITY
+        // FS_KeyframeMap_t<BuildingData> buildingData; // FS_KEYFRAME_BUILDING
 
         // helpers
         std::set<uint32_t> modifiedFaces;
