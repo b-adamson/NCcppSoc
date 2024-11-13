@@ -19,6 +19,7 @@
 #include <memory>
 #include <iostream>
 #include <stdexcept>
+#include <cmath>
 #include <algorithm>
 
 template <>
@@ -224,12 +225,24 @@ std::vector<Instance> FestiModel::getTransformsToRndPointsOnSurface(const AsInst
 			const float randomFactor = keyframe.randomness * 1000;
 
 			for (uint32_t j = 0; j < numInstances; ++j) {
-				// Generate a random point on the triangle
+				
+				// Generate a random point on the triangle and adjust for randomFactor
 				float u = std::round(dis(gen) * randomFactor) / randomFactor;
 				float v = std::round(dis(gen) * randomFactor) / randomFactor;
-				if (u + v > 1.0f) {
+				if (u + v > 1.f) {
 					u = 1.f - u;
 					v = 1.f - v;
+				}
+				
+				// Move points further to edges based on solidity
+				float& largest = (u > v) ? u : v;
+				float& smallest = (u > v) ? v : u;
+				if (abs(u + v) < 1.31649658093 && abs(u + v) > 0.81649658092) {
+					float difference = pow(1 - (u + v), 1 / keyframe.solidity);
+					largest = 1 - smallest - difference;
+					smallest -= difference;
+				} else {
+					smallest = pow(smallest, 1 / keyframe.solidity);
 				}
 				
 				// Create initial instance matrix
@@ -443,6 +456,8 @@ void FestiModel::insertKeyframe(uint32_t frame, KeyFrameFlags flags, std::vector
 
     if (flags & FS_KEYFRAME_AS_INSTANCE) {
 		if (!hasVertexBuffer) throw std::runtime_error("Cannot keyframe models that don't have vertices");
+		if (asInstanceData.randomness < 0) throw std::runtime_error("Randomness must be non-negative");
+		if (asInstanceData.solidity <= 0) throw std::runtime_error("Solidity must be positive");
         keyframes.asInstanceData[frame] = asInstanceData;
     }
 

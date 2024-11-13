@@ -125,6 +125,7 @@ public:
         Transform maxOffset;
         uint32_t layers = 1;
         float layerSeparation = 1.f;
+        float solidity = 1.f;
 
         void makeStandAlone() {*this = AsInstanceData{};}
 
@@ -132,7 +133,7 @@ public:
             return (parentObject == other.parentObject) && (density == other.density) 
                 && (seed == other.seed) && (randomness == other.randomness) 
                 && (minOffset == other.minOffset) && (maxOffset == other.maxOffset)
-                && (layers == other.layers) && (layerSeparation == other.layerSeparation);}
+                && (layers == other.layers) && (layerSeparation == other.layerSeparation) && (solidity == other.solidity);}
 
         bool operator!=(const AsInstanceData& other) const {
             return !(*this == other);}

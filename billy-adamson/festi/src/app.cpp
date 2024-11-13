@@ -428,9 +428,10 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 	FestiModel::AsInstanceData asInstanceData1{};
 	asInstanceData1.parentObject = kida;
 	asInstanceData1.density = (float)(20);
-	asInstanceData1.randomness = .01f;
+	asInstanceData1.randomness = .005f;
 	asInstanceData1.layers = 2;
 	asInstanceData1.layers = 2.f;
+	asInstanceData1.solidity = 0.005f;
 	// asInstanceData1.minOffset.scale = {1.0f, .4f, 1.0f};
 	// asInstanceData1.maxOffset.scale = {1.0f, 1.f, 1.0f};
 	// asInstanceData1.maxOffset.rotation = {10.0f, 10.0f, 10.0f};
