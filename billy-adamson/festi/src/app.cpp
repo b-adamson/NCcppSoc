@@ -393,14 +393,14 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 	//////////////////////////////////////////////////
 
 	auto kida = FestiModel::createModelFromFile(
-		festiDevice, festiMaterials, gameObjects, "models/DEFAULT/kida.obj", "models/DEFAULT", "materials/DEFAULT");
+		festiDevice, festiMaterials, gameObjects, "models/TEST/kida.obj", "models/TEST", "materials/TEST");
 	kida->transform.translation = {0.f, -.5f, 0.f};
 	kida->transform.scale = {1.f, 1.f, 1.f};
 	kida->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
 	// addObjectToSceneWithName("kida", kida);
 
 	auto cube = FestiModel::createModelFromFile(
-		festiDevice, festiMaterials, gameObjects, "models/DEFAULT/cube.obj", "models/DEFAULT", "materials/DEFAULT");
+		festiDevice, festiMaterials, gameObjects, "models/TEST/cube.obj", "models/TEST", "materials/TEST");
 	cube->transform.translation = {0.f, .0f, 0.f};
 	cube->transform.scale = {0.1f, 0.1f, 0.1f};
 	cube->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
@@ -428,10 +428,10 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 	FestiModel::AsInstanceData asInstanceData1{};
 	asInstanceData1.parentObject = kida;
 	asInstanceData1.density = (float)(20);
-	asInstanceData1.randomness = .005f;
+	asInstanceData1.randomness = .03f;
 	asInstanceData1.layers = 2;
 	asInstanceData1.layers = 2.f;
-	asInstanceData1.solidity = 0.005f;
+	asInstanceData1.solidity = 0.1f; 
 	// asInstanceData1.minOffset.scale = {1.0f, .4f, 1.0f};
 	// asInstanceData1.maxOffset.scale = {1.0f, 1.f, 1.0f};
 	// asInstanceData1.maxOffset.rotation = {10.0f, 10.0f, 10.0f};

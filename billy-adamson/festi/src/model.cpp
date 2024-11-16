@@ -206,6 +206,9 @@ std::vector<Instance> FestiModel::getTransformsToRndPointsOnSurface(const AsInst
 	for (size_t layer = 0; layer < keyframe.layers; ++layer) {
 		for (size_t i = 0; i < indices.size(); i += 3) {
 
+			std::vector<std::pair<float, float>> uvPairs;
+			
+			// Grab verts and create normals and other constants
 			glm::vec3 v0 = parentModelMatrix * glm::vec4(vertices[indices[i	   ]].position, 1.0f);
 			glm::vec3 v1 = parentModelMatrix * glm::vec4(vertices[indices[i + 1]].position, 1.0f);
 			glm::vec3 v2 = parentModelMatrix * glm::vec4(vertices[indices[i + 2]].position, 1.0f);
@@ -221,7 +224,7 @@ std::vector<Instance> FestiModel::getTransformsToRndPointsOnSurface(const AsInst
 			v1 += h;
 			v2 += h;
 
-			const uint32_t numInstances = (uint32_t)(keyframe.density * triangleArea / glm::dot(transform.scale, transform.scale));
+			uint32_t numInstances = (uint32_t)(keyframe.density * triangleArea / glm::dot(transform.scale, transform.scale));
 			const float randomFactor = keyframe.randomness * 1000;
 
 			for (uint32_t j = 0; j < numInstances; ++j) {
@@ -229,6 +232,12 @@ std::vector<Instance> FestiModel::getTransformsToRndPointsOnSurface(const AsInst
 				// Generate a random point on the triangle and adjust for randomFactor
 				float u = std::round(dis(gen) * randomFactor) / randomFactor;
 				float v = std::round(dis(gen) * randomFactor) / randomFactor;
+				std::pair<float, float> pair{u, v};
+
+				// Remove instance if it has already been created
+				if (std::find(uvPairs.begin(), uvPairs.end(), pair) != uvPairs.end()) continue;
+				uvPairs.push_back(pair);
+
 				if (u + v > 1.f) {
 					u = 1.f - u;
 					v = 1.f - v;
@@ -237,7 +246,7 @@ std::vector<Instance> FestiModel::getTransformsToRndPointsOnSurface(const AsInst
 				// Move points further to edges based on solidity
 				float& largest = (u > v) ? u : v;
 				float& smallest = (u > v) ? v : u;
-				if (abs(u + v) < 1.31649658093 && abs(u + v) > 0.81649658092) {
+				if ((u + v) < 1.31649658093 && ((u + v) > 0.81649658092)) {
 					float difference = pow(1 - (u + v), 1 / keyframe.solidity);
 					largest = 1 - smallest - difference;
 					smallest -= difference;
@@ -277,7 +286,10 @@ std::vector<Instance> FestiModel::getTransformsToRndPointsOnSurface(const AsInst
 				// Apply offsets
 				glm::mat4 modelMat = instanceTransform.getModelMatrix() * offsets.getModelMatrix();
 				glm::mat4 normalMat = instanceTransform.getNormalMatrix() * offsets.getNormalMatrix();
-				instanceMatrices.push_back(Instance{modelMat, normalMat});
+				Instance instance{modelMat, normalMat};
+				// if (std::find(instanceMatrices.begin(), instanceMatrices.end(), instance) == instanceMatrices.end()) {
+					instanceMatrices.push_back(instance);
+				// }
 			}
 		}
 	}
@@ -457,7 +469,7 @@ void FestiModel::insertKeyframe(uint32_t frame, KeyFrameFlags flags, std::vector
     if (flags & FS_KEYFRAME_AS_INSTANCE) {
 		if (!hasVertexBuffer) throw std::runtime_error("Cannot keyframe models that don't have vertices");
 		if (asInstanceData.randomness < 0) throw std::runtime_error("Randomness must be non-negative");
-		if (asInstanceData.solidity <= 0) throw std::runtime_error("Solidity must be positive");
+		if (asInstanceData.solidity <= 0 || asInstanceData.solidity > 1) throw std::runtime_error("Solidity must be 0 < s <= 1");
         keyframes.asInstanceData[frame] = asInstanceData;
     }
 

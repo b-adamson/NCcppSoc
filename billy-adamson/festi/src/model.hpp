@@ -71,6 +71,17 @@ struct Instance {
 		normalMatColumn1{normalMat[0]},
 		normalMatColumn2{normalMat[1]},
 		normalMatColumn3{normalMat[2]} {};
+
+    bool operator==(const Instance& other) const {
+        return (modelMatColumn1 == other.modelMatColumn1) && (modelMatColumn2 == other.modelMatColumn2) &&
+        (modelMatColumn3 == other.modelMatColumn3) && (modelMatColumn4 == other.modelMatColumn4) &&
+        (normalMatColumn1 == other.normalMatColumn1) && (normalMatColumn2 == other.normalMatColumn2) &&
+        (normalMatColumn3 == other.normalMatColumn3);
+    }
+
+    bool operator!=(const Instance& other) const {
+        return !(*this == other);
+    }
 };
 
 class FestiModel {
@@ -82,9 +93,13 @@ public:
     struct PointLightComponent {
         glm::vec4 color = {1.f, 1.f, 1.f, 1.f};
 
-        bool operator==(const PointLightComponent& other) {return color == other.color;}
+        bool operator==(const PointLightComponent& other) {
+            return color == other.color;
+        }
 
-        bool operator!=(const PointLightComponent& other) {return !(*this == other);}
+        bool operator!=(const PointLightComponent& other) {
+            return !(*this == other);
+        }
     };
 
     struct WorldProperties {
@@ -99,7 +114,9 @@ public:
                 mainLightDirection == other.mainLightDirection && 
                 ambientColour == other.ambientColour;}
 
-        bool operator!=(const WorldProperties& other) {return !(*this == other);}
+        bool operator!=(const WorldProperties& other) {
+            return !(*this == other);
+        }
     };
 
     struct Transform {
@@ -111,7 +128,8 @@ public:
 		glm::mat4 getNormalMatrix();
 
         bool operator==(const Transform& other) const {
-            return translation == other.translation && scale == other.scale && rotation == other.rotation;}
+            return translation == other.translation && scale == other.scale && rotation == other.rotation;
+        }
 
         bool operator!=(const Transform& other) const {return !(*this == other);}
     } transform;
@@ -133,10 +151,12 @@ public:
             return (parentObject == other.parentObject) && (density == other.density) 
                 && (seed == other.seed) && (randomness == other.randomness) 
                 && (minOffset == other.minOffset) && (maxOffset == other.maxOffset)
-                && (layers == other.layers) && (layerSeparation == other.layerSeparation) && (solidity == other.solidity);}
+                && (layers == other.layers) && (layerSeparation == other.layerSeparation) && (solidity == other.solidity);
+        }
 
         bool operator!=(const AsInstanceData& other) const {
-            return !(*this == other);}
+            return !(*this == other);
+        }
     } asInstanceData;
 
     // struct BuildingData {
