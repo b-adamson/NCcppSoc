@@ -428,21 +428,14 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 
 	auto rotateLight = glm::rotate(glm::mat4(1.f), glm::pi<float>() / 50, {0.f, -1.f, 0.f});
 
-	FestiModel::RandomInstances randInstances;
-	randInstances.density = 20.f;
-	randInstances.randomness = .03f;
-	randInstances.solidity = 0.01f;
-
 	FestiModel::AsInstanceData asInstanceData1{};
 	asInstanceData1.parentObject = kida;
-	// asInstanceData1.density = (float)(20);
-	// asInstanceData1.randomness = .003f;
+	asInstanceData1.random.density = (float)(20);
+	// asInstanceData1.random.randomness = .003f;
 	asInstanceData1.layers = 2;
 	asInstanceData1.layerSeparation = -2.f;
-	// asInstanceData1.solidity = 0.01f; 
-	asInstanceData1.isBuilding = true;
+	asInstanceData1.random.solidity = 0.01f; 
 	// asInstanceData1.buildingAxialDensity = 3.f;
-	asInstanceData1.randomInstancesData = std::make_shared<FestiModel::RandomInstances>(randInstances);
 	// asInstanceData1.minOffset.scale = {1.0f, .4f, 1.0f};
 	// asInstanceData1.maxOffset.scale = {1.0f, 1.f, 1.0f};
 	// asInstanceData1.maxOffset.rotation = {10.0f, 10.0f, 10.0f};
@@ -462,7 +455,7 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 		// asInstanceData1.maxOffset.scale = {1.0f, 10.0f, 1.0f};
 		// asInstanceData1.maxOffset.rotation = {10.0f, 10.0f, 1.0f};
 
-		cube->asInstanceData.seed = f;
+		cube->asInstanceData.random.seed = f;
 		cube->insertKeyframe(f, FS_KEYFRAME_AS_INSTANCE);
 
 		// gameObjects[idOf["cube"]]->transform.rotation += glm::vec3(0.1f, 0.1f, 0.f);

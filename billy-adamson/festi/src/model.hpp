@@ -31,7 +31,6 @@ enum KeyFrameFlags {
     FS_KEYFRAME_AS_INSTANCE = 1 << 3,
     FS_KEYFRAME_WORLD = 1 << 4,
     FS_KEYFRAME_VISIBILITY = 1 << 5,
-    FS_KEYFRAME_BUILDING = 1 << 6
 };
 
 inline KeyFrameFlags operator|(KeyFrameFlags lhs, KeyFrameFlags rhs) {
@@ -135,60 +134,38 @@ public:
         bool operator!=(const Transform& other) const {return !(*this == other);}
     } transform;
 
-    struct RandomInstances {
-        float density = 0.0;
-        uint32_t seed = 0;
-        float randomness = 1.f;
-        float solidity = 1.f;
-    };
-
-    struct BuildingInstances {
-        uint32_t buildingAxialDensity = 1.0f;
-    };
-
     struct AsInstanceData {
         std::shared_ptr<FestiModel> parentObject = nullptr;
-        std::shared_ptr<RandomInstances> randomInstancesData = nullptr;
-        std::shared_ptr<BuildingInstances> buildingInstancesData = nullptr;
-        float density = 0.0;
-        uint32_t seed = 0;
-        float randomness = 1.f;
-        Transform minOffset;
-        Transform maxOffset;
+
+        struct RandomInstancesSettings {
+            float density = 0.f;
+            uint32_t seed = 0;
+            float randomness = 1.f;
+            float solidity = 1.f;
+        } random;
+
+        struct BuildingInstancesSettings {
+            uint32_t buildingAxialDensity = 0;
+        } building;
+
+        Transform minOffset{};
+        Transform maxOffset{};
         uint32_t layers = 1;
         float layerSeparation = 1.f;
-        float solidity = 1.f;
-        bool isBuilding = false;
-        uint32_t buildingAxialDensity = 1.0f;
 
         void makeStandAlone() {*this = AsInstanceData{};}
 
         bool operator==(const AsInstanceData& other) const {
-            return (parentObject == other.parentObject) && (density == other.density) 
-                && (seed == other.seed) && (randomness == other.randomness) 
+            return (parentObject == other.parentObject) && (random.density == other.random.density) 
+                && (random.seed == other.random.seed) && (random.randomness == other.random.randomness) 
                 && (minOffset == other.minOffset) && (maxOffset == other.maxOffset)
-                && (layers == other.layers) && (layerSeparation == other.layerSeparation) && (solidity == other.solidity)
-                && (isBuilding == other.isBuilding);
+                && (layers == other.layers) && (layerSeparation == other.layerSeparation) && (random.solidity == other.random.solidity);
         }
 
         bool operator!=(const AsInstanceData& other) const {
             return !(*this == other);
         }
     } asInstanceData;
-
-    // struct BuildingData {
-    //     std::shared_ptr<FS_Model> maskObject = nullptr;
-    //     uint32_t rows = 1;
-    //     uint32_t columns = 1;
-    //     float rowSeparation = 1.f;
-    //     float columnSeparation = 1.f;
-    
-    //     bool operator==(const BuildingData& other) const {
-    //         return (storeys == other.storeys) && (storeyHeight == other.storeyHeight);}
-
-    //     bool operator!=(const BuildingData& other) const {
-    //         return !(*this == other);}
-    // } buildingData;
 
     struct KeyFrames {
         // keyframeable properties
@@ -198,7 +175,6 @@ public:
         FS_KeyframeMap_t<AsInstanceData> asInstanceData; // FS_KEYFRAME_AS_INSTANCE
         FS_KeyframeMap_t<WorldProperties> worldProperties; // FS_KEYFRAME_WORLD
         FS_KeyframeMap_t<bool> visibility; // FS_KEYFRAME_VISIBILITY
-        // FS_KeyframeMap_t<BuildingData> buildingData; // FS_KEYFRAME_BUILDING
 
         // helpers
         std::set<uint32_t> modifiedFaces;
@@ -235,7 +211,8 @@ public:
     uint32_t getId() {return id;}
     static uint32_t getMaterial(std::string name) {return materialNamesMap[name];}
     uint32_t getNumberOfFaces() {return indexCount / 3;}
-    std::vector<Instance> getTransformsToPointsOnSurface(const AsInstanceData& asInstanceDataKeyframe, Transform& childTransform);
+
+    std::vector<Instance> getTransformsToPointsOnSurface(const AsInstanceData& keyframe, Transform& childTransform);
     std::vector<uint32_t> ALL_FACES() {std::vector<uint32_t> vec(indexCount / 3); std::iota(vec.begin(), vec.end(), 0); return vec;}
 
     static void setInstanceBufferSizesOnGameObjects(FS_ModelMap& gameObjects);

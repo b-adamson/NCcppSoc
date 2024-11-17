@@ -193,148 +193,148 @@ void FestiModel::setTangentsBitangentsShapeArea(std::vector<Vertex>& vertices, c
     }
 }
 
-std::vector<Instance> FestiModel::getTransformsToPointsOnSurface(const AsInstanceData& keyframe, Transform& childTransform) {
+// std::vector<Instance> FestiModel::getTransformsToPointsOnSurface(const AsInstanceData& keyframe, Transform& childTransform, const T& Keyframe) {
 
-	// auto gen = std::mt19937(keyframe.seed);
-	std::vector<Instance> instanceMatrices;
-	std::uniform_real_distribution<float> dis(0.0, 1.0);
+// 	// auto gen = std::mt19937(keyframe.seed);
+// 	std::vector<Instance> instanceMatrices;
+// 	std::uniform_real_distribution<float> dis(0.0, 1.0);
 
-	const glm::mat4& parentModelMatrix = transform.getModelMatrix();
-	const glm::mat3& childNormalMatrix = childTransform.getNormalMatrix();
-	const glm::vec3 up = glm::normalize(childNormalMatrix * glm::vec3(0.f, 0.f, 1.f));
-	const glm::vec3 fwd = glm::normalize(childNormalMatrix * glm::vec3(1.f, 0.f, 0.f));
+// 	const glm::mat4& parentModelMatrix = transform.getModelMatrix();
+// 	const glm::mat3& childNormalMatrix = childTransform.getNormalMatrix();
+// 	const glm::vec3 up = glm::normalize(childNormalMatrix * glm::vec3(0.f, 0.f, 1.f));
+// 	const glm::vec3 fwd = glm::normalize(childNormalMatrix * glm::vec3(1.f, 0.f, 0.f));
 
-	for (size_t layer = 0; layer < keyframe.layers; ++layer) {
-		for (size_t i = 0; i < indices.size(); i += 3) {
+// 	for (size_t layer = 0; layer < keyframe.layers; ++layer) {
+// 		for (size_t i = 0; i < indices.size(); i += 3) {
 
-			// Grab verts and create normals and other constants
-			glm::vec3 v0 = parentModelMatrix * glm::vec4(vertices[indices[i	   ]].position, 1.0f);
-			glm::vec3 v1 = parentModelMatrix * glm::vec4(vertices[indices[i + 1]].position, 1.0f);
-			glm::vec3 v2 = parentModelMatrix * glm::vec4(vertices[indices[i + 2]].position, 1.0f);
+// 			// Grab verts and create normals and other constants
+// 			glm::vec3 v0 = parentModelMatrix * glm::vec4(vertices[indices[i	   ]].position, 1.0f);
+// 			glm::vec3 v1 = parentModelMatrix * glm::vec4(vertices[indices[i + 1]].position, 1.0f);
+// 			glm::vec3 v2 = parentModelMatrix * glm::vec4(vertices[indices[i + 2]].position, 1.0f);
 
-			const glm::vec3 norm = glm::cross(v1 - v0, v2 - v0);
-			const float triangleArea = glm::length(norm) * .5f;
-			const glm::vec3 triangleNormal = glm::normalize(norm);
-			const glm::vec3 axis = glm::cross(up, triangleNormal);
-			std::vector<std::pair<float, float>> uvPairs;
+// 			const glm::vec3 norm = glm::cross(v1 - v0, v2 - v0);
+// 			const float triangleArea = glm::length(norm) * .5f;
+// 			const glm::vec3 triangleNormal = glm::normalize(norm);
+// 			const glm::vec3 axis = glm::cross(up, triangleNormal);
+// 			std::vector<std::pair<float, float>> uvPairs;
 
-			// Raise vertices of parent up to correct height of current layer
-			const glm::vec4 h = glm::vec4(layer * keyframe.layerSeparation * triangleNormal, 1.f);
-			v0 += h;
-			v1 += h;
-			v2 += h;
+// 			// Raise vertices of parent up to correct height of current layer
+// 			const glm::vec4 h = glm::vec4(layer * keyframe.layerSeparation * triangleNormal, 1.f);
+// 			v0 += h;
+// 			v1 += h;
+// 			v2 += h;
 
-			// uint32_t numInstances = (uint32_t)(keyframe.density * triangleArea / glm::dot(transform.scale, transform.scale));
-			// const float randomFactor = keyframe.randomness * 1000;
+// 			// uint32_t numInstances = (uint32_t)(keyframe.density * triangleArea / glm::dot(transform.scale, transform.scale));
+// 			// const float randomFactor = keyframe.randomness * 1000;
 
-			// Create initial matrix (posrotscale such that it maps relative to the parent whilst retaining child transform)
-			Transform baseTransform = childTransform;
-			baseTransform.scale *= transform.scale;
-			if (glm::length(axis) > glm::epsilon<float>()) {
-				float dot = glm::dot(up, triangleNormal);
-				if (glm::abs(dot) < glm::epsilon<float>()) dot = 0.f;
-				const float angle = acos(dot);
-				glm::quat quatRot = glm::angleAxis(angle, glm::normalize(axis));
-				glm::quat quatTrans = quatRot;
-				if (dot < 0) quatRot = glm::angleAxis(glm::two_pi<float>() - angle, glm::normalize(axis));
-				baseTransform.rotation = glm::eulerAngles(quatRot);
-				baseTransform.translation = glm::vec3(glm::toMat4(quatTrans) * glm::vec4(baseTransform.translation, 1.0f));
-			}
+// 			// Create initial matrix (posrotscale such that it maps relative to the parent whilst retaining child transform)
+// 			Transform baseTransform = childTransform;
+// 			baseTransform.scale *= transform.scale;
+// 			if (glm::length(axis) > glm::epsilon<float>()) {
+// 				float dot = glm::dot(up, triangleNormal);
+// 				if (glm::abs(dot) < glm::epsilon<float>()) dot = 0.f;
+// 				const float angle = acos(dot);
+// 				glm::quat quatRot = glm::angleAxis(angle, glm::normalize(axis));
+// 				glm::quat quatTrans = quatRot;
+// 				if (dot < 0) quatRot = glm::angleAxis(glm::two_pi<float>() - angle, glm::normalize(axis));
+// 				baseTransform.rotation = glm::eulerAngles(quatRot);
+// 				baseTransform.translation = glm::vec3(glm::toMat4(quatTrans) * glm::vec4(baseTransform.translation, 1.0f));
+// 			}
 			
-			if (keyframe.randomInstancesData != nullptr) {
+// 			if (std::is_same<T, RandomInstances>) {
 
-				uint32_t numInstances = (uint32_t)(keyframe.randomInstancesData->density * triangleArea / glm::dot(transform.scale, transform.scale));
-				const float randomFactor = keyframe.randomInstancesData->randomness * 1000;
-				auto gen = std::mt19937(keyframe.randomInstancesData->seed);
+// 				uint32_t numInstances = (uint32_t)(keyframe.density * triangleArea / glm::dot(transform.scale, transform.scale));
+// 				const float randomFactor = keyframe.randomness * 1000;
+// 				auto gen = std::mt19937(keyframe.seed);
 
-				for (uint32_t j = 0; j < numInstances; ++j) {
+// 				for (uint32_t j = 0; j < numInstances; ++j) {
 				
-					Transform instanceTransform = baseTransform;
+// 					Transform instanceTransform = baseTransform;
 
-					// Generate a random point on the triangle and adjust for randomFactor
-					float u = std::round(dis(gen) * randomFactor) / randomFactor;
-					float v = std::round(dis(gen) * randomFactor) / randomFactor;
-					std::pair<float, float> pair{u, v};
+// 					// Generate a random point on the triangle and adjust for randomFactor
+// 					float u = std::round(dis(gen) * randomFactor) / randomFactor;
+// 					float v = std::round(dis(gen) * randomFactor) / randomFactor;
+// 					std::pair<float, float> pair{u, v};
 
-					// Remove instance if it has already been created
-					if (std::find(uvPairs.begin(), uvPairs.end(), pair) != uvPairs.end()) continue;
-					uvPairs.push_back(pair);
+// 					// Remove instance if it has already been created
+// 					if (std::find(uvPairs.begin(), uvPairs.end(), pair) != uvPairs.end()) continue;
+// 					uvPairs.push_back(pair);
 					
-					// Make sure u and v are within bounds
-					if (u + v > 1.f) {
-						u = 1.f - u;
-						v = 1.f - v;
-					}
+// 					// Make sure u and v are within bounds
+// 					if (u + v > 1.f) {
+// 						u = 1.f - u;
+// 						v = 1.f - v;
+// 					}
 					
-					// Move points further to edges based on solidity
-					float& largest = (u > v) ? u : v;
-					float& smallest = (u > v) ? v : u;
-					if ((u + v) < 1.31649658093 && ((u + v) > 0.81649658092)) {
-						float difference = pow(1 - (u + v), 1 / keyframe.randomInstancesData->solidity);
-						largest = 1 - smallest - difference;
-						smallest -= difference;
-					} else {
-						smallest = pow(smallest, 1 / keyframe.randomInstancesData->solidity);
-					}
+// 					// Move points further to edges based on solidity
+// 					float& largest = (u > v) ? u : v;
+// 					float& smallest = (u > v) ? v : u;
+// 					if ((u + v) < 1.31649658093 && ((u + v) > 0.81649658092)) {
+// 						float difference = pow(1 - (u + v), 1 / keyframe.solidity);
+// 						largest = 1 - smallest - difference;
+// 						smallest -= difference;
+// 					} else {
+// 						smallest = pow(smallest, 1 / keyframe.solidity);
+// 					}
 
-					// Move to the random point
-					instanceTransform.translation += (1.0f - u - v) * v0 + u * v1 + v * v2;
+// 					// Move to the random point
+// 					instanceTransform.translation += (1.0f - u - v) * v0 + u * v1 + v * v2;
 
-					// Create random offset matrix if available
-					Transform offsets{};
-					const auto& maxOff = keyframe.maxOffset;
-					const auto& minOff = keyframe.minOffset;
-					if (maxOff.scale != Transform{}.scale || minOff.scale != Transform{}.scale) {
-						offsets.scale *= minOff.scale + dis(gen) * (maxOff.scale - minOff.scale);
-					}
-					if (maxOff.rotation != glm::vec3() || minOff.rotation != glm::vec3()) {
-						offsets.rotation += minOff.rotation + dis(gen) * (maxOff.rotation - minOff.rotation);
-					}
-					if (maxOff.translation != glm::vec3() || minOff.translation != glm::vec3()) {
-						offsets.translation += minOff.translation + dis(gen) * (maxOff.translation - minOff.translation); // RE-ADD BRACKETS IF ISSUE OCCURS
-					}
+// 					// Create random offset matrix if available
+// 					Transform offsets{};
+// 					const auto& maxOff = keyframe.maxOffset;
+// 					const auto& minOff = keyframe.minOffset;
+// 					if (maxOff.scale != Transform{}.scale || minOff.scale != Transform{}.scale) {
+// 						offsets.scale *= minOff.scale + dis(gen) * (maxOff.scale - minOff.scale);
+// 					}
+// 					if (maxOff.rotation != glm::vec3() || minOff.rotation != glm::vec3()) {
+// 						offsets.rotation += minOff.rotation + dis(gen) * (maxOff.rotation - minOff.rotation);
+// 					}
+// 					if (maxOff.translation != glm::vec3() || minOff.translation != glm::vec3()) {
+// 						offsets.translation += minOff.translation + dis(gen) * (maxOff.translation - minOff.translation); // RE-ADD BRACKETS IF ISSUE OCCURS
+// 					}
 
-					// Apply offsets
-					glm::mat4 modelMat = instanceTransform.getModelMatrix() * offsets.getModelMatrix();
-					glm::mat4 normalMat = instanceTransform.getNormalMatrix() * offsets.getNormalMatrix();
-					Instance instance{modelMat, normalMat};
-					// if (std::find(instanceMatrices.begin(), instanceMatrices.end(), instance) == instanceMatrices.end()) {
-						instanceMatrices.push_back(instance);
-					// }
+// 					// Apply offsets
+// 					glm::mat4 modelMat = instanceTransform.getModelMatrix() * offsets.getModelMatrix();
+// 					glm::mat4 normalMat = instanceTransform.getNormalMatrix() * offsets.getNormalMatrix();
+// 					Instance instance{modelMat, normalMat};
+// 					// if (std::find(instanceMatrices.begin(), instanceMatrices.end(), instance) == instanceMatrices.end()) {
+// 						instanceMatrices.push_back(instance);
+// 					// }
 
-				}
-			}
-			if (keyframe.buildingInstancesData != nullptr) {
-				for (size_t k = 0; k < (keyframe.buildingInstancesData->buildingAxialDensity + 1); ++k) {
-					Transform instanceTransform = baseTransform;
-					float lambda = static_cast<float>(k) / keyframe.buildingInstancesData->buildingAxialDensity;
-					glm::vec3 n = v0 + lambda * ((v1 + v2) / 2.f - v0);
-					instanceTransform.translation += n;
+// 				}
+// 			}
+// 			if (keyframe.buildingInstancesData != nullptr) {
+// 				for (size_t k = 0; k < (keyframe.buildingAxialDensity + 1); ++k) {
+// 					Transform instanceTransform = baseTransform;
+// 					float lambda = static_cast<float>(k) / keyframe.buildingAxialDensity;
+// 					glm::vec3 n = v0 + lambda * ((v1 + v2) / 2.f - v0);
+// 					instanceTransform.translation += n;
 
-					float dot = glm::dot(glm::normalize((v1 + v2) / 2.f - v0), fwd);
-					if (glm::abs(dot) < glm::epsilon<float>()) dot = 0.f;
-					const float angle = acos(dot);
-					glm::quat quatRot = glm::angleAxis(angle, triangleNormal);
-					instanceTransform.rotation += glm::eulerAngles(quatRot);
+// 					float dot = glm::dot(glm::normalize((v1 + v2) / 2.f - v0), fwd);
+// 					if (glm::abs(dot) < glm::epsilon<float>()) dot = 0.f;
+// 					const float angle = acos(dot);
+// 					glm::quat quatRot = glm::angleAxis(angle, triangleNormal);
+// 					instanceTransform.rotation += glm::eulerAngles(quatRot);
 
-					glm::vec3 e1 = v2 - v1;
-					glm::vec3 e2 = v2 - v0;
-					glm::vec3 e1_perp = e1 - glm::dot(e1, n) / glm::dot(n, n) * n;
-    				glm::vec3 e2_perp = e2 - glm::dot(e2, n) / glm::dot(n, n) * n;
+// 					glm::vec3 e1 = v2 - v1;
+// 					glm::vec3 e2 = v2 - v0;
+// 					glm::vec3 e1_perp = e1 - glm::dot(e1, n) / glm::dot(n, n) * n;
+//     				glm::vec3 e2_perp = e2 - glm::dot(e2, n) / glm::dot(n, n) * n;
 
-					float width = glm::length(glm::cross(e1_perp, e2_perp)) / glm::length(n);
-					instanceTransform.scale.y *= width;
+// 					float width = glm::length(glm::cross(e1_perp, e2_perp)) / glm::length(n);
+// 					instanceTransform.scale.y *= width;
 
-					glm::mat4 modelMat = instanceTransform.getModelMatrix();
-					glm::mat4 normalMat = instanceTransform.getNormalMatrix();
-					Instance instance{modelMat, normalMat};
-					instanceMatrices.push_back(instance);
-				}
-			}
-		}
-	}
-    return instanceMatrices;
-}
+// 					glm::mat4 modelMat = instanceTransform.getModelMatrix();
+// 					glm::mat4 normalMat = instanceTransform.getNormalMatrix();
+// 					Instance instance{modelMat, normalMat};
+// 					instanceMatrices.push_back(instance);
+// 				}
+// 			}
+// 		}
+// 	}
+//     return instanceMatrices;
+// }
 
 void FestiModel::createVertexBuffer(const std::vector<Vertex> &vertices) {
 	vertexCount = static_cast<uint32_t>(vertices.size());
@@ -385,11 +385,14 @@ void FestiModel::setInstanceBufferSizesOnGameObjects(FS_ModelMap& gameObjects) {
 			auto& KFasInstanceData = kv.second;
 			if (!KFasInstanceData.parentObject) {continue;}
 			const auto& scale = KFasInstanceData.parentObject->transform.scale;
-			uint32_t KFInstances = 
-				(uint32_t)(KFasInstanceData.density * KFasInstanceData.parentObject->shapeArea / glm::dot(scale, scale));
-			if (instanceBufferSize < KFInstances) {instanceBufferSize = KFInstances;}
+			uint32_t KFInstancesCount = 
+				(uint32_t)(KFasInstanceData.random.density * KFasInstanceData.parentObject->shapeArea / glm::dot(scale, scale)) 
+					+ KFasInstanceData.building.buildingAxialDensity + 1;
+			if (instanceBufferSize < KFInstancesCount) {instanceBufferSize = KFInstancesCount;}
 		}
 		obj->createInstanceBuffer(instanceBufferSize);
+
+		obj->createInstanceBuffer(100);
 	}
 }
 
@@ -508,8 +511,8 @@ void FestiModel::insertKeyframe(uint32_t frame, KeyFrameFlags flags, std::vector
 
     if (flags & FS_KEYFRAME_AS_INSTANCE) {
 		if (!hasVertexBuffer) throw std::runtime_error("Cannot keyframe models that don't have vertices");
-		if (asInstanceData.randomness < 0) throw std::runtime_error("Randomness must be non-negative");
-		if (asInstanceData.solidity <= 0 || asInstanceData.solidity > 1) throw std::runtime_error("Solidity must be 0 < s <= 1");
+		if (asInstanceData.random.randomness < 0) throw std::runtime_error("Randomness must be non-negative");
+		if (asInstanceData.random.solidity <= 0 || asInstanceData.random.solidity > 1) throw std::runtime_error("Solidity must be 0 < s <= 1");
         keyframes.asInstanceData[frame] = asInstanceData;
     }
 
@@ -565,6 +568,145 @@ std::vector<VkVertexInputBindingDescription> Vertex::getBindingDescriptions() {
 	bindingDescriptions.push_back({0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX});
 	bindingDescriptions.push_back({1, sizeof(Instance), VK_VERTEX_INPUT_RATE_INSTANCE});
 	return bindingDescriptions;
+}
+
+std::vector<Instance> FestiModel::getTransformsToPointsOnSurface(const AsInstanceData& keyframe, Transform& childTransform) {
+	auto gen = std::mt19937(keyframe.random.seed);
+	std::vector<Instance> instanceMatrices;
+	std::uniform_real_distribution<float> dis(0.0, 1.0);
+
+	const glm::mat4& parentModelMatrix = transform.getModelMatrix();
+	const glm::mat3& childNormalMatrix = childTransform.getNormalMatrix();
+	const glm::vec3 up = glm::normalize(childNormalMatrix * glm::vec3(0.f, 0.f, 1.f));
+	const glm::vec3 fwd = glm::normalize(childNormalMatrix * glm::vec3(1.f, 0.f, 0.f));
+
+	for (size_t layer = 0; layer < keyframe.layers; ++layer) {
+		for (size_t i = 0; i < indices.size(); i += 3) {
+
+			// Grab verts and create normals and other constants
+			glm::vec3 v0 = parentModelMatrix * glm::vec4(vertices[indices[i	   ]].position, 1.0f);
+			glm::vec3 v1 = parentModelMatrix * glm::vec4(vertices[indices[i + 1]].position, 1.0f);
+			glm::vec3 v2 = parentModelMatrix * glm::vec4(vertices[indices[i + 2]].position, 1.0f);
+
+			const glm::vec3 norm = glm::cross(v1 - v0, v2 - v0);
+			const float triangleArea = glm::length(norm) * .5f;
+			const glm::vec3 triangleNormal = glm::normalize(norm);
+			const glm::vec3 axis = glm::cross(up, triangleNormal);
+			std::vector<std::pair<float, float>> uvPairs;
+
+			// Raise vertices of parent up to correct height of current layer
+			const glm::vec4 h = glm::vec4(layer * keyframe.layerSeparation * triangleNormal, 1.f);
+			v0 += h;
+			v1 += h;
+			v2 += h;
+
+			// Create initial instance matrix
+			Transform baseTransform = childTransform;
+
+			// Apply random offsets if available
+			const auto& maxOff = keyframe.maxOffset;
+			const auto& minOff = keyframe.minOffset;
+			if (maxOff.scale != Transform{}.scale || minOff.scale != Transform{}.scale) {
+				baseTransform.scale *= minOff.scale + dis(gen) * (maxOff.scale - minOff.scale);
+			}
+			if (maxOff.rotation != glm::vec3() || minOff.rotation != glm::vec3()) {
+				baseTransform.rotation += minOff.rotation + dis(gen) * (maxOff.rotation - minOff.rotation);
+			}
+			if (maxOff.translation != glm::vec3() || minOff.translation != glm::vec3()) {
+				baseTransform.translation += minOff.translation + dis(gen) * (maxOff.translation - minOff.translation);
+			}
+
+			// Move child onto parent whilst retaining local initial child transform
+			baseTransform.scale *= transform.scale; // Multiply by scale of parent before rotating
+			glm::quat quatTrans;
+			if (glm::length(axis) > glm::epsilon<float>()) {
+				float dot = glm::dot(up, triangleNormal);
+				if (glm::abs(dot) < glm::epsilon<float>()) dot = 0.f;
+				const float angle = acos(dot);
+
+				// Find quaternion representing rotation from local child up to parent up
+				glm::quat quatRot = glm::angleAxis(angle, glm::normalize(axis));
+				quatTrans = quatRot;
+				if (dot < 0) quatRot = glm::angleAxis(glm::two_pi<float>() - angle, glm::normalize(axis));
+
+				// Convert local rotation to new basis in parent space
+				baseTransform.rotation = glm::eulerAngles(quatRot);
+			}
+			// Convert local translation to new basis in parent space
+			baseTransform.translation = glm::vec3(glm::toMat4(quatTrans) * glm::vec4(baseTransform.translation, 1.0f));
+
+			uint32_t numInstances = (uint32_t)(keyframe.random.density * triangleArea / glm::dot(transform.scale, transform.scale));
+			if (numInstances != 0) {
+				const float randomFactor = keyframe.random.randomness * 1000;
+				for (uint32_t j = 0; j < numInstances; ++j) {
+					Transform instanceTransform = baseTransform;
+
+					// Generate a random point on the triangle and adjust for randomFactor
+					float u = std::round(dis(gen) * randomFactor) / randomFactor;
+					float v = std::round(dis(gen) * randomFactor) / randomFactor;
+					std::pair<float, float> pair{u, v};
+
+					// Remove instance if it has already been created
+					if (std::find(uvPairs.begin(), uvPairs.end(), pair) != uvPairs.end()) continue;
+					uvPairs.push_back(pair);
+					
+					// Make sure u and v are within bounds
+					if (u + v > 1.f) {
+						u = 1.f - u;
+						v = 1.f - v;
+					}
+					
+					// Move points further to edges based on solidity
+					float& largest = (u > v) ? u : v;
+					float& smallest = (u > v) ? v : u;
+					if ((u + v) < 1.31649658093 && ((u + v) > 0.81649658092)) {
+						float difference = pow(1 - (u + v), 1 / keyframe.random.solidity);
+						largest = 1 - smallest - difference;
+						smallest -= difference;
+					} else {
+						smallest = pow(smallest, 1 / keyframe.random.solidity);
+					}
+
+					// Move to the random point
+					instanceTransform.translation += (1.0f - u - v) * v0 + u * v1 + v * v2;
+
+					// Create instance matrix
+					glm::mat4 modelMat = instanceTransform.getModelMatrix();
+					glm::mat4 normalMat = instanceTransform.getNormalMatrix();
+					instanceMatrices.push_back(Instance{modelMat, normalMat});
+				}
+			}
+			if (keyframe.building.buildingAxialDensity != 0) {
+				for (size_t k = 0; k < (keyframe.building.buildingAxialDensity + 1); ++k) {
+					Transform instanceTransform = baseTransform;
+
+					// Generate equation of line and move instance to point on line
+					const float lambda = static_cast<float>(k) / keyframe.building.buildingAxialDensity;
+					const glm::vec3 n = v0 + lambda * ((v1 + v2) / 2.f - v0);
+					instanceTransform.translation += n;
+
+					float dot = glm::dot(glm::normalize((v1 + v2) / 2.f - v0), fwd);
+					if (glm::abs(dot) < glm::epsilon<float>()) dot = 0.f;
+					const float angle = acos(dot);
+					glm::quat quatRot = glm::angleAxis(angle, triangleNormal);
+					instanceTransform.rotation += glm::eulerAngles(quatRot);
+
+					glm::vec3 e1 = v2 - v1;
+					glm::vec3 e2 = v2 - v0;
+					glm::vec3 e1_perp = e1 - glm::dot(e1, n) / glm::dot(n, n) * n;
+    				glm::vec3 e2_perp = e2 - glm::dot(e2, n) / glm::dot(n, n) * n;
+
+					float width = glm::length(glm::cross(e1_perp, e2_perp)) / glm::length(n);
+					instanceTransform.scale.y *= width;
+
+					glm::mat4 modelMat = instanceTransform.getModelMatrix();
+					glm::mat4 normalMat = instanceTransform.getNormalMatrix();
+					instanceMatrices.push_back(Instance{modelMat, normalMat});
+				}
+			}
+		}
+	}
+    return instanceMatrices;
 }
 
 }  // namespace festi
