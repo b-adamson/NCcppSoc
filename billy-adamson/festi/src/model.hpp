@@ -20,6 +20,7 @@
 #include <optional>
 #include <algorithm>
 #include <random>
+#include <variant>
 
 namespace festi {
 
@@ -134,8 +135,21 @@ public:
         bool operator!=(const Transform& other) const {return !(*this == other);}
     } transform;
 
+    struct RandomInstances {
+        float density = 0.0;
+        uint32_t seed = 0;
+        float randomness = 1.f;
+        float solidity = 1.f;
+    };
+
+    struct BuildingInstances {
+        uint32_t buildingAxialDensity = 1.0f;
+    };
+
     struct AsInstanceData {
         std::shared_ptr<FestiModel> parentObject = nullptr;
+        std::shared_ptr<RandomInstances> randomInstancesData = nullptr;
+        std::shared_ptr<BuildingInstances> buildingInstancesData = nullptr;
         float density = 0.0;
         uint32_t seed = 0;
         float randomness = 1.f;
@@ -144,6 +158,8 @@ public:
         uint32_t layers = 1;
         float layerSeparation = 1.f;
         float solidity = 1.f;
+        bool isBuilding = false;
+        uint32_t buildingAxialDensity = 1.0f;
 
         void makeStandAlone() {*this = AsInstanceData{};}
 
@@ -151,7 +167,8 @@ public:
             return (parentObject == other.parentObject) && (density == other.density) 
                 && (seed == other.seed) && (randomness == other.randomness) 
                 && (minOffset == other.minOffset) && (maxOffset == other.maxOffset)
-                && (layers == other.layers) && (layerSeparation == other.layerSeparation) && (solidity == other.solidity);
+                && (layers == other.layers) && (layerSeparation == other.layerSeparation) && (solidity == other.solidity)
+                && (isBuilding == other.isBuilding);
         }
 
         bool operator!=(const AsInstanceData& other) const {
@@ -218,7 +235,7 @@ public:
     uint32_t getId() {return id;}
     static uint32_t getMaterial(std::string name) {return materialNamesMap[name];}
     uint32_t getNumberOfFaces() {return indexCount / 3;}
-    std::vector<Instance> getTransformsToRndPointsOnSurface(const AsInstanceData& asInstanceDataKeyframe, Transform& childTransform);
+    std::vector<Instance> getTransformsToPointsOnSurface(const AsInstanceData& asInstanceDataKeyframe, Transform& childTransform);
     std::vector<uint32_t> ALL_FACES() {std::vector<uint32_t> vec(indexCount / 3); std::iota(vec.begin(), vec.end(), 0); return vec;}
 
     static void setInstanceBufferSizesOnGameObjects(FS_ModelMap& gameObjects);

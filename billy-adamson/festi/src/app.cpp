@@ -212,6 +212,8 @@ void FestiApp::run() {
 
 void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 
+	// WALL SCENE:
+
 	// auto floor = FestiModel::createModelFromFile(
 	// 	festiDevice, festiMaterials, gameObjects, "models/floor.obj", "models", "materials");
 	// floor->transform.scale = {7.f, 3.f, 7.f};
@@ -391,6 +393,7 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 	// }
 
 	//////////////////////////////////////////////////
+	// TEST SCENE:
 
 	auto kida = FestiModel::createModelFromFile(
 		festiDevice, festiMaterials, gameObjects, "models/TEST/kida.obj", "models/TEST", "materials/TEST");
@@ -425,13 +428,21 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 
 	auto rotateLight = glm::rotate(glm::mat4(1.f), glm::pi<float>() / 50, {0.f, -1.f, 0.f});
 
+	FestiModel::RandomInstances randInstances;
+	randInstances.density = 20.f;
+	randInstances.randomness = .03f;
+	randInstances.solidity = 0.01f;
+
 	FestiModel::AsInstanceData asInstanceData1{};
 	asInstanceData1.parentObject = kida;
-	asInstanceData1.density = (float)(20);
-	asInstanceData1.randomness = .03f;
+	// asInstanceData1.density = (float)(20);
+	// asInstanceData1.randomness = .003f;
 	asInstanceData1.layers = 2;
-	asInstanceData1.layers = 2.f;
-	asInstanceData1.solidity = 0.1f; 
+	asInstanceData1.layerSeparation = -2.f;
+	// asInstanceData1.solidity = 0.01f; 
+	asInstanceData1.isBuilding = true;
+	// asInstanceData1.buildingAxialDensity = 3.f;
+	asInstanceData1.randomInstancesData = std::make_shared<FestiModel::RandomInstances>(randInstances);
 	// asInstanceData1.minOffset.scale = {1.0f, .4f, 1.0f};
 	// asInstanceData1.maxOffset.scale = {1.0f, 1.f, 1.0f};
 	// asInstanceData1.maxOffset.rotation = {10.0f, 10.0f, 10.0f};
@@ -473,6 +484,10 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 
 	// gameObjects[idOf["cube"]]->asInstanceData.makeStandAlone();
 	// gameObjects[idOf["cube"]]->insertKeyframe(10, FS_KEYFRAME_AS_INSTANCE_DATA);
+
+	// BLOCKS:
+
+
 }
 
 void FestiApp::checkUserInput() {
@@ -584,7 +599,7 @@ void FestiApp::setObjectToCurrentKeyFrame(
 		if ((obj->asInstanceData != asInstKF->second) || hasMoved || parentHasMoved || atEndOrStart) {
 			if (asInstKF->second.parentObject) {
 				obj->writeToInstanceBuffer(
-					asInstKF->second.parentObject->getTransformsToRndPointsOnSurface(asInstKF->second, obj->transform));
+					asInstKF->second.parentObject->getTransformsToPointsOnSurface(asInstKF->second, obj->transform));
 			} else {
 				obj->writeToInstanceBuffer(
 					std::vector<Instance>(1, {obj->transform.getModelMatrix(), obj->transform.getNormalMatrix()}));
