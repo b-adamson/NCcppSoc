@@ -146,6 +146,7 @@ public:
 
         struct BuildingInstancesSettings {
             uint32_t buildingAxialDensity = 0;
+            uint32_t alignToEdgeIdx = 0;
         } building;
 
         Transform minOffset{};
@@ -159,7 +160,9 @@ public:
             return (parentObject == other.parentObject) && (random.density == other.random.density) 
                 && (random.seed == other.random.seed) && (random.randomness == other.random.randomness) 
                 && (minOffset == other.minOffset) && (maxOffset == other.maxOffset)
-                && (layers == other.layers) && (layerSeparation == other.layerSeparation) && (random.solidity == other.random.solidity);
+                && (layers == other.layers) && (layerSeparation == other.layerSeparation) 
+                && (random.solidity == other.random.solidity) && (building.alignToEdgeIdx == other.building.alignToEdgeIdx)
+                && (building.buildingAxialDensity == other.building.buildingAxialDensity);
         }
 
         bool operator!=(const AsInstanceData& other) const {
@@ -211,9 +214,9 @@ public:
     uint32_t getId() {return id;}
     static uint32_t getMaterial(std::string name) {return materialNamesMap[name];}
     uint32_t getNumberOfFaces() {return indexCount / 3;}
+    std::vector<uint32_t> ALL_FACES() {std::vector<uint32_t> vec(indexCount / 3); std::iota(vec.begin(), vec.end(), 0); return vec;}
 
     std::vector<Instance> getTransformsToPointsOnSurface(const AsInstanceData& keyframe, Transform& childTransform);
-    std::vector<uint32_t> ALL_FACES() {std::vector<uint32_t> vec(indexCount / 3); std::iota(vec.begin(), vec.end(), 0); return vec;}
 
     static void setInstanceBufferSizesOnGameObjects(FS_ModelMap& gameObjects);
     void writeToInstanceBuffer(const std::vector<Instance>& instances);
@@ -234,6 +237,27 @@ private:
     void createVertexBuffer(const std::vector<Vertex>& vertices);
 	void createIndexBuffer(const std::vector<uint32_t>& indices);
     void createInstanceBuffer(uint32_t size);
+    void addRndInstance(	
+        std::vector<Instance>& instanceMatrices,
+        Transform instanceTransform, 
+        const AsInstanceData& keyframe, 
+        std::vector<std::pair<float, float>>& uvPairs, 
+        const glm::vec3& v0,
+        const glm::vec3& v1,
+        const glm::vec3& v2,
+        std::uniform_real_distribution<float>& dis,
+        std::mt19937& gen
+    );
+    void addBuildingInstances(	
+        std::vector<Instance>& instanceMatrices,
+        const AsInstanceData& keyframe,
+        const glm::vec3& v0,
+        const glm::vec3& v1,
+        const glm::vec3& v2,
+	    const Transform& baseTransform,
+        const glm::vec3& fwd,
+        const glm::vec3& triangleNormal
+    );
 
     FestiDevice& festiDevice;
 

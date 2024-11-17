@@ -96,14 +96,14 @@ void PointLightSystem::writePointLightsToUBO(FrameInfo& frameInfo, GlobalUBO& ub
 }
 
 void PointLightSystem::renderPointLights(FrameInfo& frameInfo) {
-	// sort lights
+	// Sort lights
 	std::map<float, unsigned int> sorted;
 	auto camPosition = glm::vec3(frameInfo.camera.getInverseView()[3]);
 	for (auto& kv : frameInfo.gameObjects) {
 		auto& obj = kv.second;
 		if (obj->pointLight == nullptr || !obj->visibility) continue;
 
-		// calculate distance
+		// Calculate distance
 		auto offset = camPosition - obj->transform.translation;
 		float disSquared = glm::dot(offset, offset);
 		sorted[disSquared] = obj->getId();

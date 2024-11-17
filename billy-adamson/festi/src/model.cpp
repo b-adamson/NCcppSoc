@@ -488,6 +488,7 @@ glm::vec3 FestiModel::WorldProperties::getDirectionVector() {
 
 void FestiModel::insertKeyframe(uint32_t frame, KeyFrameFlags flags, std::vector<uint32_t> faceIDs) {
     if (flags & FS_KEYFRAME_POS_ROT_SCALE) {
+		if (world != nullptr) throw std::runtime_error("Cannot change PosRotScale of the scene");
         keyframes.transforms[frame] = transform;
         keyframes.inMotion.insert(frame);
     }
@@ -517,29 +518,23 @@ void FestiModel::insertKeyframe(uint32_t frame, KeyFrameFlags flags, std::vector
     }
 
     if (flags & FS_KEYFRAME_WORLD) {
-        if (!world) throw std::runtime_error("Cannot keyframe world data on a local object");
+        if (!world) throw std::runtime_error("Cannot keyframe scene data on a local object");
         keyframes.worldProperties[frame] = *world;
     }
 
 	if (flags & FS_KEYFRAME_VISIBILITY) {
-		// if (world) throw std::runtime_error("Cannot change visibility of the scene");
+		if (world != nullptr) throw std::runtime_error("Cannot change visibility of the scene");
 		keyframes.visibility[frame] = visibility;
 	}
-
-	// if (flags & FS_KEYFRAME_BUILDING) {
-	// 	if (!hasVertexBuffer) throw std::runtime_error("Cannot create a building on an object with no vertices");
-	// 	keyframes.buildingData[frame] = buildingData;
-	// }
 }
 
 void FestiModel::addObjectToSceneWithName(FS_Model& object, FS_ModelMap& gameObjects) {
-	object->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE | FS_KEYFRAME_VISIBILITY);
 	if (object->pointLight) {
-		object->insertKeyframe(0, FS_KEYFRAME_POINT_LIGHT);
+		object->insertKeyframe(0, FS_KEYFRAME_POINT_LIGHT | FS_KEYFRAME_VISIBILITY | FS_KEYFRAME_POS_ROT_SCALE);
 	} else if (object->world) {
 		object->insertKeyframe(0, FS_KEYFRAME_WORLD);
 	} else {
-		object->insertKeyframe(0, FS_KEYFRAME_FACE_MATERIALS | FS_KEYFRAME_AS_INSTANCE);
+		object->insertKeyframe(0, FS_KEYFRAME_FACE_MATERIALS | FS_KEYFRAME_AS_INSTANCE | FS_KEYFRAME_VISIBILITY | FS_KEYFRAME_POS_ROT_SCALE);
 	}
 	gameObjects.emplace(object->getId(), object);
 }
@@ -559,7 +554,6 @@ std::vector<VkVertexInputAttributeDescription> Vertex::getAttributeDescriptions(
 	attributeDescriptions.push_back({9,  1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Instance, normalMatColumn1)});
 	attributeDescriptions.push_back({10, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Instance, normalMatColumn2)});
 	attributeDescriptions.push_back({11, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Instance, normalMatColumn3)});
-	
 	return attributeDescriptions;
 }
 
@@ -571,6 +565,7 @@ std::vector<VkVertexInputBindingDescription> Vertex::getBindingDescriptions() {
 }
 
 std::vector<Instance> FestiModel::getTransformsToPointsOnSurface(const AsInstanceData& keyframe, Transform& childTransform) {
+	// Define constants
 	auto gen = std::mt19937(keyframe.random.seed);
 	std::vector<Instance> instanceMatrices;
 	std::uniform_real_distribution<float> dis(0.0, 1.0);
@@ -582,7 +577,6 @@ std::vector<Instance> FestiModel::getTransformsToPointsOnSurface(const AsInstanc
 
 	for (size_t layer = 0; layer < keyframe.layers; ++layer) {
 		for (size_t i = 0; i < indices.size(); i += 3) {
-
 			// Grab verts and create normals and other constants
 			glm::vec3 v0 = parentModelMatrix * glm::vec4(vertices[indices[i	   ]].position, 1.0f);
 			glm::vec3 v1 = parentModelMatrix * glm::vec4(vertices[indices[i + 1]].position, 1.0f);
@@ -635,78 +629,112 @@ std::vector<Instance> FestiModel::getTransformsToPointsOnSurface(const AsInstanc
 			// Convert local translation to new basis in parent space
 			baseTransform.translation = glm::vec3(glm::toMat4(quatTrans) * glm::vec4(baseTransform.translation, 1.0f));
 
-			uint32_t numInstances = (uint32_t)(keyframe.random.density * triangleArea / glm::dot(transform.scale, transform.scale));
-			if (numInstances != 0) {
-				const float randomFactor = keyframe.random.randomness * 1000;
-				for (uint32_t j = 0; j < numInstances; ++j) {
-					Transform instanceTransform = baseTransform;
-
-					// Generate a random point on the triangle and adjust for randomFactor
-					float u = std::round(dis(gen) * randomFactor) / randomFactor;
-					float v = std::round(dis(gen) * randomFactor) / randomFactor;
-					std::pair<float, float> pair{u, v};
-
-					// Remove instance if it has already been created
-					if (std::find(uvPairs.begin(), uvPairs.end(), pair) != uvPairs.end()) continue;
-					uvPairs.push_back(pair);
-					
-					// Make sure u and v are within bounds
-					if (u + v > 1.f) {
-						u = 1.f - u;
-						v = 1.f - v;
-					}
-					
-					// Move points further to edges based on solidity
-					float& largest = (u > v) ? u : v;
-					float& smallest = (u > v) ? v : u;
-					if ((u + v) < 1.31649658093 && ((u + v) > 0.81649658092)) {
-						float difference = pow(1 - (u + v), 1 / keyframe.random.solidity);
-						largest = 1 - smallest - difference;
-						smallest -= difference;
-					} else {
-						smallest = pow(smallest, 1 / keyframe.random.solidity);
-					}
-
-					// Move to the random point
-					instanceTransform.translation += (1.0f - u - v) * v0 + u * v1 + v * v2;
-
-					// Create instance matrix
-					glm::mat4 modelMat = instanceTransform.getModelMatrix();
-					glm::mat4 normalMat = instanceTransform.getNormalMatrix();
-					instanceMatrices.push_back(Instance{modelMat, normalMat});
-				}
+			uint32_t instCount = (uint32_t)(keyframe.random.density * triangleArea / glm::dot(transform.scale, transform.scale));
+			if (instCount != 0) {
+				// Add random instances
+				for (size_t j = 0; j < instCount; ++j) addRndInstance(instanceMatrices, baseTransform, keyframe, uvPairs, v0, v1, v2, dis, gen);
 			}
 			if (keyframe.building.buildingAxialDensity != 0) {
-				for (size_t k = 0; k < (keyframe.building.buildingAxialDensity + 1); ++k) {
-					Transform instanceTransform = baseTransform;
-
-					// Generate equation of line and move instance to point on line
-					const float lambda = static_cast<float>(k) / keyframe.building.buildingAxialDensity;
-					const glm::vec3 n = v0 + lambda * ((v1 + v2) / 2.f - v0);
-					instanceTransform.translation += n;
-
-					float dot = glm::dot(glm::normalize((v1 + v2) / 2.f - v0), fwd);
-					if (glm::abs(dot) < glm::epsilon<float>()) dot = 0.f;
-					const float angle = acos(dot);
-					glm::quat quatRot = glm::angleAxis(angle, triangleNormal);
-					instanceTransform.rotation += glm::eulerAngles(quatRot);
-
-					glm::vec3 e1 = v2 - v1;
-					glm::vec3 e2 = v2 - v0;
-					glm::vec3 e1_perp = e1 - glm::dot(e1, n) / glm::dot(n, n) * n;
-    				glm::vec3 e2_perp = e2 - glm::dot(e2, n) / glm::dot(n, n) * n;
-
-					float width = glm::length(glm::cross(e1_perp, e2_perp)) / glm::length(n);
-					instanceTransform.scale.y *= width;
-
-					glm::mat4 modelMat = instanceTransform.getModelMatrix();
-					glm::mat4 normalMat = instanceTransform.getNormalMatrix();
-					instanceMatrices.push_back(Instance{modelMat, normalMat});
-				}
+				// Add building instances
+				addBuildingInstances(instanceMatrices, keyframe, v0, v1, v2, baseTransform, fwd, triangleNormal);
 			}
 		}
 	}
     return instanceMatrices;
+}
+
+void FestiModel::addRndInstance(
+	std::vector<Instance>& instanceMatrices,
+	Transform instanceTransform, 
+	const AsInstanceData& keyframe, 
+	std::vector<std::pair<float, float>>& uvPairs, 
+	const glm::vec3& v0,
+	const glm::vec3& v1,
+	const glm::vec3& v2,
+	std::uniform_real_distribution<float>& dis,
+	std::mt19937& gen
+	) {
+	// Generate a random point on the triangle and adjust for randomFactor
+	const float randomFactor = keyframe.random.randomness * 1000;
+	float u = std::round(dis(gen) * randomFactor) / randomFactor;
+	float v = std::round(dis(gen) * randomFactor) / randomFactor;
+	std::pair<float, float> pair{u, v};
+
+	// Remove instance if it has already been created
+	if (std::find(uvPairs.begin(), uvPairs.end(), pair) != uvPairs.end()) return;
+	uvPairs.push_back(pair);
+	
+	// Make sure u and v are within bounds
+	if (u + v > 1.f) {
+		u = 1.f - u;
+		v = 1.f - v;
+	}
+	
+	// Move points further to edges based on solidity
+	float& largest = (u > v) ? u : v;
+	float& smallest = (u > v) ? v : u;
+	if ((u + v) < 1.31649658093 && ((u + v) > 0.81649658092)) {
+		float difference = pow(1 - (u + v), 1 / keyframe.random.solidity);
+		largest = 1 - smallest - difference;
+		smallest -= difference;
+	} else {
+		smallest = pow(smallest, 1 / keyframe.random.solidity);
+	}
+
+	// Move to the random point
+	instanceTransform.translation += (1.0f - u - v) * v0 + u * v1 + v * v2;
+
+	// Create instance matrix
+	glm::mat4 modelMat = instanceTransform.getModelMatrix();
+	glm::mat4 normalMat = instanceTransform.getNormalMatrix();
+	instanceMatrices.push_back(Instance{modelMat, normalMat});
+}
+
+void FestiModel::addBuildingInstances(
+	std::vector<Instance>& instanceMatrices,
+	const AsInstanceData& keyframe,
+	const glm::vec3& v0,
+	const glm::vec3& v1,
+	const glm::vec3& v2,
+	const Transform& baseTransform,
+	const glm::vec3& fwd,
+	const glm::vec3& triangleNormal
+	) {
+	// Grab correct edges based on specified edge to align to
+	glm::vec3 c0, c1, c2;
+	switch (keyframe.building.alignToEdgeIdx) {
+		case 0: 
+			c0 = v0; c1 = v1; c2 = v2;
+			break;
+		case 1:
+			c0 = v1; c1 = v2; c2 = v0;
+			break;
+		case 2:
+			c0 = v2; c1 = v0; c2 = v1;
+			break;
+		default:
+			assert(false && "Edge index out of range for building instancing");
+	}
+	for (size_t k = 0; k < (keyframe.building.buildingAxialDensity + 1); ++k) {
+		Transform instanceTransform = baseTransform;
+		
+		// Find equation of midpoint and translate along it and adjust width accordingly
+		const float lambda = 1.f - static_cast<float>(k) / keyframe.building.buildingAxialDensity;
+		instanceTransform.translation += c0 + lambda * ((c1 + c2) / 2.f - c0);
+		instanceTransform.scale.x *= lambda * glm::length(c1 - c2);
+
+		// Rotate to align to specified edge
+		float dot = glm::dot(glm::normalize(c1 - c2), fwd);
+		if (glm::abs(dot) < glm::epsilon<float>()) dot = 0.f;
+		const float angle = acos(dot);
+		glm::quat quatRot = glm::angleAxis(angle, triangleNormal);
+		instanceTransform.rotation += glm::eulerAngles(quatRot);
+
+		// Add instance
+		glm::mat4 modelMat = instanceTransform.getModelMatrix();
+		glm::mat4 normalMat = instanceTransform.getNormalMatrix();
+		instanceMatrices.push_back(Instance{modelMat, normalMat});
+	}
 }
 
 }  // namespace festi

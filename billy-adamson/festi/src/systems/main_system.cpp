@@ -173,7 +173,7 @@ void MainSystem::renderGameObjects(FrameInfo& frameInfo) {
 
 	for (size_t i = 0; i < frameInfo.gameObjects.size(); i++) {
 		auto& obj = frameInfo.gameObjects[i];
-		if (!obj->hasVertexBuffer || !obj->visibility) { continue; }
+		if (!obj->hasVertexBuffer || !obj->visibility) {continue;}
 
 		MainPushConstants push{};
 		push.objectID = obj->getId();

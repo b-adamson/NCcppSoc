@@ -400,14 +400,12 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 	kida->transform.translation = {0.f, -.5f, 0.f};
 	kida->transform.scale = {1.f, 1.f, 1.f};
 	kida->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
-	// addObjectToSceneWithName("kida", kida);
 
 	auto cube = FestiModel::createModelFromFile(
 		festiDevice, festiMaterials, gameObjects, "models/TEST/cube.obj", "models/TEST", "materials/TEST");
 	cube->transform.translation = {0.f, .0f, 0.f};
 	cube->transform.scale = {0.1f, 0.1f, 0.1f};
 	cube->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
-	// addObjectToSceneWithName("cube", cube);
 	
     std::vector<glm::vec3> lightColors = {
         {1.0f, 0.0f, 0.0f}, // Red
@@ -430,12 +428,13 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 
 	FestiModel::AsInstanceData asInstanceData1{};
 	asInstanceData1.parentObject = kida;
-	asInstanceData1.random.density = (float)(20);
-	// asInstanceData1.random.randomness = .003f;
-	asInstanceData1.layers = 2;
+	asInstanceData1.random.density = 0.f;
+	asInstanceData1.random.randomness = .003f;
+	asInstanceData1.layers = 1;
 	asInstanceData1.layerSeparation = -2.f;
-	asInstanceData1.random.solidity = 0.01f; 
-	// asInstanceData1.buildingAxialDensity = 3.f;
+	asInstanceData1.random.solidity = .01f;
+	asInstanceData1.building.buildingAxialDensity = 5.f;
+	asInstanceData1.building.alignToEdgeIdx = 0;
 	// asInstanceData1.minOffset.scale = {1.0f, .4f, 1.0f};
 	// asInstanceData1.maxOffset.scale = {1.0f, 1.f, 1.0f};
 	// asInstanceData1.maxOffset.rotation = {10.0f, 10.0f, 10.0f};
@@ -551,14 +550,17 @@ void FestiApp::setObjectToCurrentKeyFrame(
 		return it;
 	};
 
-	// FS_KEYFRAME_POS_ROT_SCALE
-	auto posRotScaleKF = getObjectPropertyKeyframe(obj->keyframes.transforms);
-	bool hasMoved = obj->transform != posRotScaleKF->second;
-	if (hasMoved || atEndOrStart) {obj->transform = posRotScaleKF->second;}
+	bool hasMoved = false;
+	if (!obj->world) {
+		// FS_KEYFRAME_VISIBILITY
+		auto visibilityKF = getObjectPropertyKeyframe(obj->keyframes.visibility);
+		if (obj->visibility != visibilityKF->second || atEndOrStart) {obj->visibility = visibilityKF->second;}
 
-	// FS_KEYFRAME_VISIBILITY
-	auto visibilityKF = getObjectPropertyKeyframe(obj->keyframes.visibility);
-	if (obj->visibility != visibilityKF->second || atEndOrStart) {obj->visibility = visibilityKF->second;}
+		// FS_KEYFRAME_POS_ROT_SCALE
+		auto posRotScaleKF = getObjectPropertyKeyframe(obj->keyframes.transforms);
+		hasMoved = obj->transform != posRotScaleKF->second;
+		if (hasMoved || atEndOrStart) {obj->transform = posRotScaleKF->second;}
+	}
 
 	if (obj->pointLight) {
 		// FS_KEYFRAME_POINT_LIGHT
