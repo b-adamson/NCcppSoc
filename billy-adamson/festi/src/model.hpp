@@ -132,6 +132,61 @@ public:
         }
 
         bool operator!=(const Transform& other) const {return !(*this == other);}
+
+        Transform& randomOffset(
+            const Transform& minOff, 
+            const Transform& maxOff, 
+            std::uniform_real_distribution<float>& dis, 
+            std::mt19937& gen
+        ) {
+            if (maxOff.scale != Transform{}.scale || minOff.scale != Transform{}.scale) {
+				scale *= minOff.scale + dis(gen) * (maxOff.scale - minOff.scale);
+			}
+			if (maxOff.rotation != glm::vec3() || minOff.rotation != glm::vec3()) {
+				rotation += minOff.rotation + dis(gen) * (maxOff.rotation - minOff.rotation);
+			}
+			if (maxOff.translation != glm::vec3() || minOff.translation != glm::vec3()) {
+				translation += minOff.translation + dis(gen) * (maxOff.translation - minOff.translation);
+			}
+            return *this;
+        }
+
+        void mapToSurface(
+            const Transform& parent, 
+            const glm::vec3& axis, 
+            const glm::vec3& triangleNormal,
+            const glm::vec3& up
+        );
+        
+        // Transform operator+(const Transform& other) const {
+        //     return {
+        //         translation + other.translation,
+        //         scale + other.scale,
+        //         rotation + other.rotation
+        //     };
+        // }
+
+        // Transform operator-(const Transform& other) const {
+        //     return {
+        //         translation - other.translation,
+        //         scale - other.scale,
+        //         rotation - other.rotation
+        //     };
+        // }
+
+        // Transform& operator+=(const Transform& other) {
+        //     translation += other.translation; 
+        //     scale += other.scale;             
+        //     rotation += other.rotation;     
+        //     return *this;               
+        // }
+
+        // Transform& operator-=(const Transform& other) {
+        //     translation -= other.translation; 
+        //     scale -= other.scale;            
+        //     rotation -= other.rotation;      
+        //     return *this;                    
+        // }  
     } transform;
 
     struct AsInstanceData {
@@ -142,15 +197,21 @@ public:
             uint32_t seed = 0;
             float randomness = 1.f;
             float solidity = 1.f;
+            Transform minOffset{};
+            Transform maxOffset{};            
         } random;
 
         struct BuildingInstancesSettings {
-            uint32_t buildingAxialDensity = 0;
             uint32_t alignToEdgeIdx = 0;
+            uint32_t columnDensity = 0;
+            Transform maxColumnOffset{};
+            Transform minColumnOffset{};
+            Transform maxStrutOffset{};
+            Transform minStrutOffset{};
+            glm::vec2 strutsPerColumnRange{};
+            float jengaFactor = 0.f;
         } building;
 
-        Transform minOffset{};
-        Transform maxOffset{};
         uint32_t layers = 1;
         float layerSeparation = 1.f;
 
@@ -159,10 +220,9 @@ public:
         bool operator==(const AsInstanceData& other) const {
             return (parentObject == other.parentObject) && (random.density == other.random.density) 
                 && (random.seed == other.random.seed) && (random.randomness == other.random.randomness) 
-                && (minOffset == other.minOffset) && (maxOffset == other.maxOffset)
                 && (layers == other.layers) && (layerSeparation == other.layerSeparation) 
                 && (random.solidity == other.random.solidity) && (building.alignToEdgeIdx == other.building.alignToEdgeIdx)
-                && (building.buildingAxialDensity == other.building.buildingAxialDensity);
+                && (building.columnDensity == other.building.columnDensity);
         }
 
         bool operator!=(const AsInstanceData& other) const {
@@ -256,7 +316,9 @@ private:
         const glm::vec3& v2,
 	    const Transform& baseTransform,
         const glm::vec3& fwd,
-        const glm::vec3& triangleNormal
+        const glm::vec3& triangleNormal,
+        std::uniform_real_distribution<float>& dis,
+        std::mt19937& gen	
     );
 
     FestiDevice& festiDevice;
@@ -278,5 +340,13 @@ private:
 
     friend class FestiMaterials;
 };
+
+// inline FestiModel::Transform operator*(float scalar, const FestiModel::Transform& transform) {
+//     FestiModel::Transform result;
+//     result.translation = transform.translation * scalar;  
+//     result.scale = transform.scale * scalar;             
+//     result.rotation = transform.rotation * scalar;   
+//     return result;
+// }
 
 } // festi namespace

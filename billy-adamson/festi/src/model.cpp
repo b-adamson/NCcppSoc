@@ -386,9 +386,10 @@ void FestiModel::setInstanceBufferSizesOnGameObjects(FS_ModelMap& gameObjects) {
 			if (!KFasInstanceData.parentObject) {continue;}
 			const auto& scale = KFasInstanceData.parentObject->transform.scale;
 			uint32_t KFInstancesCount = 
-				(uint32_t)(KFasInstanceData.random.density * KFasInstanceData.parentObject->shapeArea / glm::dot(scale, scale)) 
-					+ KFasInstanceData.building.buildingAxialDensity + 1;
-			if (instanceBufferSize < KFInstancesCount) {instanceBufferSize = KFInstancesCount;}
+				static_cast<uint32_t>(KFasInstanceData.random.density * KFasInstanceData.parentObject->shapeArea / glm::dot(scale, scale)) 
+					// + KFasInstanceData.building.columnDensity + 1 
+					+ (KFasInstanceData.building.strutsPerColumnRange[1] + 1) * (KFasInstanceData.building.columnDensity + 1);
+			if (instanceBufferSize < KFInstancesCount) instanceBufferSize = KFInstancesCount;
 		}
 		obj->createInstanceBuffer(instanceBufferSize);
 
@@ -597,46 +598,36 @@ std::vector<Instance> FestiModel::getTransformsToPointsOnSurface(const AsInstanc
 			// Create initial instance matrix
 			Transform baseTransform = childTransform;
 
-			// Apply random offsets if available
-			const auto& maxOff = keyframe.maxOffset;
-			const auto& minOff = keyframe.minOffset;
-			if (maxOff.scale != Transform{}.scale || minOff.scale != Transform{}.scale) {
-				baseTransform.scale *= minOff.scale + dis(gen) * (maxOff.scale - minOff.scale);
-			}
-			if (maxOff.rotation != glm::vec3() || minOff.rotation != glm::vec3()) {
-				baseTransform.rotation += minOff.rotation + dis(gen) * (maxOff.rotation - minOff.rotation);
-			}
-			if (maxOff.translation != glm::vec3() || minOff.translation != glm::vec3()) {
-				baseTransform.translation += minOff.translation + dis(gen) * (maxOff.translation - minOff.translation);
-			}
+			baseTransform.mapToSurface(transform, axis, triangleNormal, up);
 
-			// Move child onto parent whilst retaining local initial child transform
-			baseTransform.scale *= transform.scale; // Multiply by scale of parent before rotating
-			glm::quat quatTrans;
-			if (glm::length(axis) > glm::epsilon<float>()) {
-				float dot = glm::dot(up, triangleNormal);
-				if (glm::abs(dot) < glm::epsilon<float>()) dot = 0.f;
-				const float angle = acos(dot);
+			// // Move child onto parent whilst retaining local initial child transform
+			// baseTransform.scale *= transform.scale; // Multiply by scale of parent before rotating
+			// glm::quat quatTrans;
+			// if (glm::length(axis) > glm::epsilon<float>()) {
+			// 	float dot = glm::dot(up, triangleNormal);
+			// 	if (glm::abs(dot) < glm::epsilon<float>()) dot = 0.f;
+			// 	const float angle = acos(dot);
 
-				// Find quaternion representing rotation from local child up to parent up
-				glm::quat quatRot = glm::angleAxis(angle, glm::normalize(axis));
-				quatTrans = quatRot;
-				if (dot < 0) quatRot = glm::angleAxis(glm::two_pi<float>() - angle, glm::normalize(axis));
+			// 	// Find quaternion representing rotation from local child up to parent up
+			// 	glm::quat quatRot = glm::angleAxis(angle, glm::normalize(axis));
+			// 	quatTrans = quatRot;
+			// 	if (dot < 0) quatRot = glm::angleAxis(glm::two_pi<float>() - angle, glm::normalize(axis));
 
-				// Convert local rotation to new basis in parent space
-				baseTransform.rotation = glm::eulerAngles(quatRot);
-			}
-			// Convert local translation to new basis in parent space
-			baseTransform.translation = glm::vec3(glm::toMat4(quatTrans) * glm::vec4(baseTransform.translation, 1.0f));
+			// 	// Convert local rotation to new basis in parent space
+			// 	baseTransform.rotation = glm::eulerAngles(quatRot);
+			// }
+			// // Convert local translation to new basis in parent space
+			// baseTransform.translation = glm::vec3(glm::toMat4(quatTrans) * glm::vec4(baseTransform.translation, 1.f));
 
 			uint32_t instCount = (uint32_t)(keyframe.random.density * triangleArea / glm::dot(transform.scale, transform.scale));
 			if (instCount != 0) {
 				// Add random instances
-				for (size_t j = 0; j < instCount; ++j) addRndInstance(instanceMatrices, baseTransform, keyframe, uvPairs, v0, v1, v2, dis, gen);
+				Transform rndTransform = baseTransform.randomOffset(keyframe.random.minOffset, keyframe.random.maxOffset, dis, gen);
+				for (size_t j = 0; j < instCount; ++j) addRndInstance(instanceMatrices, rndTransform, keyframe, uvPairs, v0, v1, v2, dis, gen);
 			}
-			if (keyframe.building.buildingAxialDensity != 0) {
+			if (keyframe.building.columnDensity != 0) {
 				// Add building instances
-				addBuildingInstances(instanceMatrices, keyframe, v0, v1, v2, baseTransform, fwd, triangleNormal);
+				addBuildingInstances(instanceMatrices, keyframe, v0, v1, v2, baseTransform, fwd, triangleNormal, dis, gen);
 			}
 		}
 	}
@@ -698,7 +689,9 @@ void FestiModel::addBuildingInstances(
 	const glm::vec3& v2,
 	const Transform& baseTransform,
 	const glm::vec3& fwd,
-	const glm::vec3& triangleNormal
+	const glm::vec3& triangleNormal,
+	std::uniform_real_distribution<float>& dis,
+	std::mt19937& gen	
 	) {
 	// Grab correct edges based on specified edge to align to
 	glm::vec3 c0, c1, c2;
@@ -715,26 +708,80 @@ void FestiModel::addBuildingInstances(
 		default:
 			assert(false && "Edge index out of range for building instancing");
 	}
-	for (size_t k = 0; k < (keyframe.building.buildingAxialDensity + 1); ++k) {
-		Transform instanceTransform = baseTransform;
+	for (size_t k = 0; k < (keyframe.building.columnDensity + 1); ++k) {
+		// COLUMN
+		Transform columnTransform = baseTransform;
 		
 		// Find equation of midpoint and translate along it and adjust width accordingly
-		const float lambda = 1.f - static_cast<float>(k) / keyframe.building.buildingAxialDensity;
-		instanceTransform.translation += c0 + lambda * ((c1 + c2) / 2.f - c0);
-		instanceTransform.scale.x *= lambda * glm::length(c1 - c2);
+		float lambda = 1.f - static_cast<float>(k) / keyframe.building.columnDensity;
+		columnTransform.translation += c0 + lambda * ((c1 + c2) / 2.f - c0);
+		columnTransform.scale.x *= lambda * glm::length(c1 - c2);
+
+		// Raise points up to centre of layer
+		columnTransform.translation += triangleNormal * keyframe.layerSeparation / 2.f;
+
+		// Apply random column offsets
+		columnTransform.randomOffset(keyframe.building.minColumnOffset, keyframe.building.maxColumnOffset, dis, gen);
 
 		// Rotate to align to specified edge
 		float dot = glm::dot(glm::normalize(c1 - c2), fwd);
 		if (glm::abs(dot) < glm::epsilon<float>()) dot = 0.f;
 		const float angle = acos(dot);
 		glm::quat quatRot = glm::angleAxis(angle, triangleNormal);
-		instanceTransform.rotation += glm::eulerAngles(quatRot);
+		columnTransform.rotation += glm::eulerAngles(quatRot);
 
 		// Add instance
-		glm::mat4 modelMat = instanceTransform.getModelMatrix();
-		glm::mat4 normalMat = instanceTransform.getNormalMatrix();
+		glm::mat4 modelMat = columnTransform.getModelMatrix();
+		glm::mat4 normalMat = columnTransform.getNormalMatrix();
 		instanceMatrices.push_back(Instance{modelMat, normalMat});
+
+		// STRUTS
+		uint32_t strutCount = static_cast<uint32_t>(keyframe.building.strutsPerColumnRange[0] + dis(gen) * 
+			(keyframe.building.strutsPerColumnRange[1] - keyframe.building.strutsPerColumnRange[0]));
+		lambda += .5f / keyframe.building.columnDensity;
+		for (uint32_t i = 1; i < (strutCount + 1); ++i) {
+			if (dis(gen) + keyframe.building.jengaFactor > 1.f) continue;
+			Transform strutTransform = baseTransform;
+
+			// Apply random strut offsets
+			strutTransform.randomOffset(keyframe.building.minStrutOffset, keyframe.building.maxStrutOffset, dis, gen);
+
+			// Translate to midpoint and correct height
+			strutTransform.translation += c0 + lambda * ((c1 + c2) / 2.f - c0);
+			strutTransform.translation += 
+				triangleNormal * static_cast<float>(i) * keyframe.layerSeparation / static_cast<float>(strutCount + 1);
+			
+			// Add instance
+			modelMat = strutTransform.getModelMatrix();
+			normalMat = strutTransform.getNormalMatrix();
+			instanceMatrices.push_back(Instance{modelMat, normalMat});
+		}
 	}
+}
+
+void FestiModel::Transform::mapToSurface(
+	const Transform& parent, 
+	const glm::vec3& axis, 
+	const glm::vec3& triangleNormal,
+	const glm::vec3& up) {
+	// Move child onto parent whilst retaining local initial child transform
+	scale *= parent.scale; // Multiply by scale of parent before rotating
+	glm::quat quatTrans;
+	if (glm::length(axis) > glm::epsilon<float>()) {
+		float dot = glm::dot(up, triangleNormal);
+		if (glm::abs(dot) < glm::epsilon<float>()) dot = 0.f;
+		const float angle = acos(dot);
+
+		// Find quaternion representing rotation from local child up to parent up
+		glm::quat quatRot = glm::angleAxis(angle, glm::normalize(axis));
+		quatTrans = quatRot;
+		if (dot < 0) quatRot = glm::angleAxis(glm::two_pi<float>() - angle, glm::normalize(axis));
+
+		// Convert local rotation to new basis in parent space
+		rotation = glm::eulerAngles(quatRot);
+	}
+	// Convert local translation to new basis in parent space
+	translation = glm::vec3(glm::toMat4(quatTrans) * glm::vec4(translation, 1.f));
 }
 
 }  // namespace festi

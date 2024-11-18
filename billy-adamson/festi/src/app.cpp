@@ -431,13 +431,14 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 	asInstanceData1.random.density = 0.f;
 	asInstanceData1.random.randomness = .003f;
 	asInstanceData1.layers = 1;
-	asInstanceData1.layerSeparation = -2.f;
+	asInstanceData1.layerSeparation = -1.f;
 	asInstanceData1.random.solidity = .01f;
-	asInstanceData1.building.buildingAxialDensity = 5.f;
+	asInstanceData1.building.columnDensity = 5.f;
 	asInstanceData1.building.alignToEdgeIdx = 0;
-	// asInstanceData1.minOffset.scale = {1.0f, .4f, 1.0f};
-	// asInstanceData1.maxOffset.scale = {1.0f, 1.f, 1.0f};
+	// asInstanceData1.random.minOffset.scale = {4.0f, 1.f, 5.0f};
+	// asInstanceData1.random.maxOffset.scale = {4.0f, 1.f, 5.0f};
 	// asInstanceData1.maxOffset.rotation = {10.0f, 10.0f, 10.0f};
+	asInstanceData1.building.strutsPerColumnRange = {2,4};
 
 	cube->asInstanceData = asInstanceData1;
 	cube->insertKeyframe(0, FS_KEYFRAME_AS_INSTANCE);

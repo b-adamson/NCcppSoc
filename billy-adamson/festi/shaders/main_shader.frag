@@ -125,6 +125,8 @@ void main() {
 		vec3 directionToLight = light.position.xyz - fragPosWorld;
 		float attenuation = 1.0 / dot(directionToLight, directionToLight);
 		directionToLight = normalize(directionToLight);
+
+		// diffuse lighting
 		vec3 intensity = light.colour.xyz * light.colour.w * attenuation;
 		diffuseLight += intensity * max(dot(surfaceNormal, directionToLight), 0);
 
