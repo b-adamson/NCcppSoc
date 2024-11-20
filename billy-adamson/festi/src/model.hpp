@@ -150,13 +150,6 @@ public:
 			}
             return *this;
         }
-
-        void mapToSurface(
-            const Transform& parent, 
-            const glm::vec3& axis, 
-            const glm::vec3& triangleNormal,
-            const glm::vec3& up
-        );
         
         // Transform operator+(const Transform& other) const {
         //     return {
@@ -210,6 +203,7 @@ public:
             Transform minStrutOffset{};
             glm::vec2 strutsPerColumnRange{};
             float jengaFactor = 0.f;
+            float seed = .0f;
         } building;
 
         uint32_t layers = 1;

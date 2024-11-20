@@ -429,16 +429,17 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 	FestiModel::AsInstanceData asInstanceData1{};
 	asInstanceData1.parentObject = kida;
 	asInstanceData1.random.density = 0.f;
-	asInstanceData1.random.randomness = .003f;
+	asInstanceData1.random.randomness = .3f;
 	asInstanceData1.layers = 1;
 	asInstanceData1.layerSeparation = -1.f;
-	asInstanceData1.random.solidity = .01f;
-	asInstanceData1.building.columnDensity = 5.f;
+	asInstanceData1.random.solidity = 1.f;
+	asInstanceData1.building.columnDensity = 3.f;
 	asInstanceData1.building.alignToEdgeIdx = 0;
 	// asInstanceData1.random.minOffset.scale = {4.0f, 1.f, 5.0f};
 	// asInstanceData1.random.maxOffset.scale = {4.0f, 1.f, 5.0f};
 	// asInstanceData1.maxOffset.rotation = {10.0f, 10.0f, 10.0f};
-	asInstanceData1.building.strutsPerColumnRange = {2,4};
+	asInstanceData1.building.strutsPerColumnRange = {2,3};
+	asInstanceData1.building.jengaFactor = 0.f;
 
 	cube->asInstanceData = asInstanceData1;
 	cube->insertKeyframe(0, FS_KEYFRAME_AS_INSTANCE);
@@ -456,7 +457,16 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 		// asInstanceData1.maxOffset.rotation = {10.0f, 10.0f, 1.0f};
 
 		cube->asInstanceData.random.seed = f;
-		cube->insertKeyframe(f, FS_KEYFRAME_AS_INSTANCE);
+		// cube->insertKeyframe(f, FS_KEYFRAME_AS_INSTANCE);
+
+		kida->transform.rotation.y += 0.02;
+		kida->transform.rotation.x += 0.02;
+		kida->transform.translation.z += 0.001;
+		kida->transform.translation.y += 0.01;
+		// kida->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
+
+		cube->transform.translation.y += 0.01f;
+		// cube->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
 
 		// gameObjects[idOf["cube"]]->transform.rotation += glm::vec3(0.1f, 0.1f, 0.f);
 		// gameObjects[idOf["cube"]]->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
