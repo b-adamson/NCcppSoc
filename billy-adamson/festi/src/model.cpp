@@ -392,8 +392,6 @@ void FestiModel::setInstanceBufferSizesOnGameObjects(FS_ModelMap& gameObjects) {
 			if (instanceBufferSize < KFInstancesCount) instanceBufferSize = KFInstancesCount;
 		}
 		obj->createInstanceBuffer(instanceBufferSize);
-
-		obj->createInstanceBuffer(100);
 	}
 }
 
@@ -566,20 +564,20 @@ std::vector<VkVertexInputBindingDescription> Vertex::getBindingDescriptions() {
 }
 
 std::vector<Instance> FestiModel::getTransformsToPointsOnSurface(const AsInstanceData& keyframe, Transform& childTransform) {
-	// Define constants
-	auto genRnd = std::mt19937(keyframe.random.seed);
-	auto genBldng = std::mt19937(keyframe.building.seed);
 	std::vector<Instance> instanceMatrices;
-	std::uniform_real_distribution<float> dis(0.0, 1.0);
 
 	Transform& parentTransform = transform;
 	const glm::mat4& parentModelMatrix = parentTransform.getModelMatrix();
 	const glm::mat3& childNormalMatrix = childTransform.getNormalMatrix();
-	const glm::vec3 up = glm::normalize(childNormalMatrix * glm::vec3(0.f, 0.f, 1.f));
-	const glm::vec3 fwd = glm::normalize(childNormalMatrix * glm::vec3(1.f, 0.f, 0.f));
+	// const glm::vec3 up = glm::normalize(childNormalMatrix * glm::vec3(0.f, 0.f, 1.f));
 
 	for (size_t layer = 0; layer < keyframe.layers; ++layer) {
 		for (size_t i = 0; i < indices.size(); i += 3) {
+			// Define random generators
+			auto genRnd = std::mt19937(keyframe.random.seed);
+			auto genBldng = std::mt19937(keyframe.building.seed);
+			std::uniform_real_distribution<float> dis(0.0, 1.0);
+
 			// Grab verts and create normals and other constants
 			glm::vec3 v0 = parentModelMatrix * glm::vec4(vertices[indices[i	   ]].position, 1.f);
 			glm::vec3 v1 = parentModelMatrix * glm::vec4(vertices[indices[i + 1]].position, 1.f);
@@ -588,7 +586,6 @@ std::vector<Instance> FestiModel::getTransformsToPointsOnSurface(const AsInstanc
 			const glm::vec3 norm = glm::cross(v1 - v0, v2 - v0);
 			const float triangleArea = glm::length(norm) * .5f;
 			const glm::vec3 triangleNormal = glm::normalize(norm);
-			const glm::vec3 axis = glm::cross(up, triangleNormal);
 			std::vector<std::pair<float, float>> uvPairs;
 
 			// Raise vertices of parent up to correct height of current layer
@@ -602,21 +599,23 @@ std::vector<Instance> FestiModel::getTransformsToPointsOnSurface(const AsInstanc
 
 			// Move to parent
 			baseTransform.translation = 
-				glm::normalize(glm::vec3(parentTransform.getModelMatrix()[0])) * baseTransform.translation[0] + 
-				glm::normalize(glm::vec3(parentTransform.getModelMatrix()[1])) * baseTransform.translation[1] +
-				glm::normalize(glm::vec3(parentTransform.getModelMatrix()[2])) * baseTransform.translation[2];
+				glm::normalize(glm::vec3(parentModelMatrix[0])) * baseTransform.translation[0] + 
+				glm::normalize(glm::vec3(parentModelMatrix[1])) * baseTransform.translation[1] +
+				glm::normalize(glm::vec3(parentModelMatrix[2])) * baseTransform.translation[2];
 			baseTransform.scale *= parentTransform.scale;
 			baseTransform.rotation += parentTransform.rotation;
 
 			uint32_t instCount = (uint32_t)(keyframe.random.density * triangleArea / glm::dot(transform.scale, transform.scale));
 			if (instCount != 0) {
 				// Add random instances
-				Transform rndTransform = baseTransform.randomOffset(keyframe.random.minOffset, keyframe.random.maxOffset, dis, genRnd);
-				for (size_t j = 0; j < instCount; ++j) addRndInstance(instanceMatrices, rndTransform, keyframe, uvPairs, v0, v1, v2, dis, genRnd);
+				for (size_t j = 0; j < instCount; ++j) {
+					genRnd;
+					addRndInstance(instanceMatrices, baseTransform, keyframe, parentModelMatrix, uvPairs, v0, v1, v2, genRnd);
+				}
 			}
 			if (keyframe.building.columnDensity != 0) {
 				// Building Instances
-				addBuildingInstances(instanceMatrices, keyframe, v0, v1, v2, baseTransform, fwd, triangleNormal, dis, genBldng);
+				addBuildingInstances(instanceMatrices, keyframe, v0, v1, v2, baseTransform, triangleNormal, genBldng);
 			}
 		}
 	}
@@ -627,13 +626,16 @@ void FestiModel::addRndInstance(
 	std::vector<Instance>& instanceMatrices,
 	Transform instanceTransform, 
 	const AsInstanceData& keyframe, 
+	const glm::mat4& basis,
 	std::vector<std::pair<float, float>>& uvPairs, 
 	const glm::vec3& v0,
 	const glm::vec3& v1,
 	const glm::vec3& v2,
-	std::uniform_real_distribution<float>& dis,
 	std::mt19937& gen
 	) {
+	std::uniform_real_distribution<float> dis;
+	instanceTransform.randomOffset(keyframe.random.minOffset, keyframe.random.maxOffset, basis, gen);
+
 	// Generate a random point on the triangle and adjust for randomFactor
 	const float randomFactor = keyframe.random.randomness * 1000;
 	float u = std::round(dis(gen) * randomFactor) / randomFactor;
@@ -676,12 +678,12 @@ void FestiModel::addBuildingInstances(
 	const glm::vec3& v0,
 	const glm::vec3& v1,
 	const glm::vec3& v2,
-	const Transform& baseTransform,
-	const glm::vec3& fwd,
+	Transform& baseTransform,
 	const glm::vec3& triangleNormal,
-	std::uniform_real_distribution<float>& dis,
 	std::mt19937& gen	
 	) {
+
+	std::uniform_real_distribution<float> dis;
 
 	// Grab correct edges based on specified edge to align to
 	glm::vec3 c0, c1, c2;
@@ -713,7 +715,8 @@ void FestiModel::addBuildingInstances(
 		columnTransform.translation += triangleNormal * keyframe.layerSeparation / 2.f;
 
 		// Apply random column offsets
-		columnTransform.randomOffset(keyframe.building.minColumnOffset, keyframe.building.maxColumnOffset, dis, gen);
+		columnTransform.randomOffset(
+			keyframe.building.minColumnOffset, keyframe.building.maxColumnOffset, baseTransform.getModelMatrix(), gen);
 
 		// Add instance
 		glm::mat4 modelMat = columnTransform.getModelMatrix();
@@ -729,7 +732,8 @@ void FestiModel::addBuildingInstances(
 			Transform strutTransform = baseTransform;
 
 			// Apply random strut offsets
-			strutTransform.randomOffset(keyframe.building.minStrutOffset, keyframe.building.maxStrutOffset, dis, gen);
+			strutTransform.randomOffset(
+				keyframe.building.minStrutOffset, keyframe.building.maxStrutOffset, baseTransform.getModelMatrix(), gen);
 
 			// Translate to midpoint and correct height
 			strutTransform.translation += c0 + lambda * ((c1 + c2) / 2.f - c0);
@@ -747,5 +751,37 @@ void FestiModel::addBuildingInstances(
 		}
 	}
 }
+
+FestiModel::Transform& FestiModel::Transform::randomOffset(
+	const Transform& minOff, 
+	const Transform& maxOff, 
+	const glm::mat4& basis,
+	std::mt19937& gen
+	) {
+	
+	std::uniform_real_distribution<float> dis;
+
+	if (maxOff.scale != Transform{}.scale || minOff.scale != Transform{}.scale) {
+		scale[0] *= minOff.scale[0] + dis(gen) * (maxOff.scale[0] - minOff.scale[0]);
+		scale[1] *= minOff.scale[1] + dis(gen) * (maxOff.scale[1] - minOff.scale[1]);
+		scale[2] *= minOff.scale[2] + dis(gen) * (maxOff.scale[2] - minOff.scale[2]);
+	}
+
+	if (maxOff.rotation != glm::vec3{} || minOff.rotation != glm::vec3{}) {
+		rotation += 
+			(minOff.rotation[0] + dis(gen) * (maxOff.rotation[0] - minOff.rotation[0])) * glm::normalize(basis[0]) +
+			(minOff.rotation[1] + dis(gen) * (maxOff.rotation[1] - minOff.rotation[1])) * glm::normalize(basis[1]) +
+			(minOff.rotation[2] + dis(gen) * (maxOff.rotation[2] - minOff.rotation[2])) * glm::normalize(basis[2]);
+	}
+
+	if (maxOff.translation != glm::vec3{} || minOff.translation != glm::vec3{}) {
+		translation += 
+			(minOff.translation[0] + dis(gen) * (maxOff.translation[0] - minOff.translation[0])) * glm::normalize(basis[0]) +
+			(minOff.translation[1] + dis(gen) * (maxOff.translation[1] - minOff.translation[1])) * glm::normalize(basis[1]) + 
+			(minOff.translation[2] + dis(gen) * (maxOff.translation[2] - minOff.translation[2])) * glm::normalize(basis[2]);
+	}
+	return *this;
+}
+
 
 }  // namespace festi

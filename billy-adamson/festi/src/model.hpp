@@ -127,59 +127,19 @@ public:
 		glm::mat4 getModelMatrix();
 		glm::mat4 getNormalMatrix();
 
+        Transform& randomOffset(
+            const Transform& minOff, 
+            const Transform& maxOff, 
+            const glm::mat4& basis,
+	        std::mt19937& gen
+        );
+
         bool operator==(const Transform& other) const {
             return translation == other.translation && scale == other.scale && rotation == other.rotation;
         }
 
         bool operator!=(const Transform& other) const {return !(*this == other);}
 
-        Transform& randomOffset(
-            const Transform& minOff, 
-            const Transform& maxOff, 
-            std::uniform_real_distribution<float>& dis, 
-            std::mt19937& gen
-        ) {
-            if (maxOff.scale != Transform{}.scale || minOff.scale != Transform{}.scale) {
-				scale *= minOff.scale + dis(gen) * (maxOff.scale - minOff.scale);
-			}
-			if (maxOff.rotation != glm::vec3() || minOff.rotation != glm::vec3()) {
-				rotation += minOff.rotation + dis(gen) * (maxOff.rotation - minOff.rotation);
-			}
-			if (maxOff.translation != glm::vec3() || minOff.translation != glm::vec3()) {
-				translation += minOff.translation + dis(gen) * (maxOff.translation - minOff.translation);
-			}
-            return *this;
-        }
-        
-        // Transform operator+(const Transform& other) const {
-        //     return {
-        //         translation + other.translation,
-        //         scale + other.scale,
-        //         rotation + other.rotation
-        //     };
-        // }
-
-        // Transform operator-(const Transform& other) const {
-        //     return {
-        //         translation - other.translation,
-        //         scale - other.scale,
-        //         rotation - other.rotation
-        //     };
-        // }
-
-        // Transform& operator+=(const Transform& other) {
-        //     translation += other.translation; 
-        //     scale += other.scale;             
-        //     rotation += other.rotation;     
-        //     return *this;               
-        // }
-
-        // Transform& operator-=(const Transform& other) {
-        //     translation -= other.translation; 
-        //     scale -= other.scale;            
-        //     rotation -= other.rotation;      
-        //     return *this;                    
-        // }  
     } transform;
 
     struct AsInstanceData {
@@ -295,11 +255,11 @@ private:
         std::vector<Instance>& instanceMatrices,
         Transform instanceTransform, 
         const AsInstanceData& keyframe, 
+    	const glm::mat4& basis,
         std::vector<std::pair<float, float>>& uvPairs, 
         const glm::vec3& v0,
         const glm::vec3& v1,
         const glm::vec3& v2,
-        std::uniform_real_distribution<float>& dis,
         std::mt19937& gen
     );
     void addBuildingInstances(	
@@ -308,10 +268,8 @@ private:
         const glm::vec3& v0,
         const glm::vec3& v1,
         const glm::vec3& v2,
-	    const Transform& baseTransform,
-        const glm::vec3& fwd,
+	    Transform& baseTransform,
         const glm::vec3& triangleNormal,
-        std::uniform_real_distribution<float>& dis,
         std::mt19937& gen	
     );
 
