@@ -213,25 +213,30 @@ void FestiApp::run() {
 void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 
 	// // WALL SCENE:
+
+	// const std::string objPath = "models/WALLROTATING/";
+	// const std::string mtlPath = "models/WALLROTATING/";
+	// const std::string matPath = "materials/WALLROTATING/";
+
 	// auto floor = FestiModel::createModelFromFile(
-	// 	festiDevice, festiMaterials, gameObjects, "models/floor.obj", "models", "materials");
+	// 	festiDevice, festiMaterials, gameObjects, objPath + "floor.obj", mtlPath, matPath);
 	// floor->transform.scale = {7.f, 3.f, 7.f};
 
 	// auto wall = FestiModel::createModelFromFile(
-	// 	festiDevice, festiMaterials, gameObjects, "models/wall.obj", "models", "materials");
+	// 	festiDevice, festiMaterials, gameObjects, objPath + "wall.obj", mtlPath, matPath);
 	// wall->transform.scale = {.1f, .1f, .2f};
 
 	// auto door = FestiModel::createModelFromFile(
-	// 	festiDevice, festiMaterials, gameObjects, "models/door.obj", "models", "materials");
+	// 	festiDevice, festiMaterials, gameObjects, objPath + "door.obj", mtlPath, matPath);
 	// door->transform.translation = {0.f, .95f, 0.f};
 	// door->transform.scale = {.05f, 0.12f, 0.12f};
 
 	// auto arch = FestiModel::createModelFromFile(
-	// 	festiDevice, festiMaterials, gameObjects, "models/arch.obj", "models", "materials");
+	// 	festiDevice, festiMaterials, gameObjects, objPath + "arch.obj", mtlPath, matPath);
 	// arch->transform.translation = {0.f, 2.f, 0.f};
 
 	// auto mask = FestiModel::createModelFromFile(
-	// 	festiDevice, festiMaterials, gameObjects, "models/mask.obj", "models", "materials");
+	// 	festiDevice, festiMaterials, gameObjects, objPath + "mask.obj", mtlPath, matPath);
 	// mask->transform.scale = {.1f, .1f, .2f};
 	// mask->transform.rotation.y = glm::pi<float>();
 	// mask->transform.translation.z += .1f;
@@ -239,16 +244,16 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 	// mask->insertKeyframe(0, FS_KEYFRAME_VISIBILITY);
 
 	// auto lamp = FestiModel::createModelFromFile(
-	// 	festiDevice, festiMaterials, gameObjects, "models/lamp.obj", "models", "materials");
+	// 	festiDevice, festiMaterials, gameObjects, objPath + "lamp.obj", mtlPath, matPath);
 	// lamp->transform.scale = {.1f, .1f, .1f};
 
 	// auto box = FestiModel::createModelFromFile(
-	// 	festiDevice, festiMaterials, gameObjects, "models/box.obj", "models", "materials");
+	// 	festiDevice, festiMaterials, gameObjects, objPath + "box.obj", mtlPath, matPath);
 	// box->transform.translation = {0.f, -3.f, -1.5f};
 	// box->transform.scale = {3.f, 3.f, 3.f};
 
 	// auto leaf = FestiModel::createModelFromFile(
-	// 	festiDevice, festiMaterials, gameObjects, "models/leaf.obj", "models", "materials");
+	// 	festiDevice, festiMaterials, gameObjects, objPath + "leaf.obj", mtlPath, matPath);
 	// leaf->transform.translation.z = 0.7f;
 	// leaf->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
 
@@ -259,7 +264,7 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 	// leaf->insertKeyframe(0, FS_KEYFRAME_FACE_MATERIALS, leaf->ALL_FACES());
 
 	// auto streetLight = FestiModel::createModelFromFile(
-	// 	festiDevice, festiMaterials, gameObjects, "models/streetLight.obj", "models", "materials");
+	// 	festiDevice, festiMaterials, gameObjects, objPath + "streetLight.obj", mtlPath, matPath);
 	// streetLight->transform.rotation = {glm::pi<float>(), 0.f, 0.f};
 	// streetLight->transform.scale = {0.3f, 0.2f, 0.3f};
 	
@@ -395,102 +400,122 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 	//////////////////////////////////////////////////
 	// TEST SCENE:
 
-	auto kida = FestiModel::createModelFromFile(
-		festiDevice, festiMaterials, gameObjects, "models/TEST/kida.obj", "models/TEST", "materials/TEST");
-	kida->transform.translation = {0.f, -.5f, 0.f};
-	kida->transform.scale = {1.f, 1.f, 1.f};
-	kida->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
+	// auto kida = FestiModel::createModelFromFile(
+	// 	festiDevice, festiMaterials, gameObjects, "models/TEST/kida.obj", "models/TEST", "materials/TEST");
+	// kida->transform.translation = {0.f, -.5f, 0.f};
+	// kida->transform.scale = {1.f, 1.f, 1.f};
+	// kida->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
 
-	auto cube = FestiModel::createModelFromFile(
-		festiDevice, festiMaterials, gameObjects, "models/TEST/cube.obj", "models/TEST", "materials/TEST");
-	cube->transform.translation = {0.f, .0f, 0.f};
-	cube->transform.scale = {0.1f, 0.1f, 0.1f};
-	cube->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
+	// auto cube = FestiModel::createModelFromFile(
+	// 	festiDevice, festiMaterials, gameObjects, "models/TEST/cube.obj", "models/TEST", "materials/TEST");
+	// cube->transform.translation = {0.f, .0f, 0.f};
+	// cube->transform.scale = {0.1f, 0.1f, 0.1f};
+	// cube->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
 	
-    std::vector<glm::vec3> lightColors = {
-        {1.0f, 0.0f, 0.0f}, // Red
-        {0.0f, 1.0f, 0.0f}, // Green
-        {0.0f, 0.0f, 1.0f}, // Blue
-        {1.0f, 1.0f, 0.0f}, // Yellow
-        {1.0f, 0.5f, 0.0f}, // Orange
-        {0.5f, 0.0f, 1.0f}  // Purple
-    };
+    // std::vector<glm::vec3> lightColors = {
+    //     {1.0f, 0.0f, 0.0f}, // Red
+    //     {0.0f, 1.0f, 0.0f}, // Green
+    //     {0.0f, 0.0f, 1.0f}, // Blue
+    //     {1.0f, 1.0f, 0.0f}, // Yellow
+    //     {1.0f, 0.5f, 0.0f}, // Orange
+    //     {0.5f, 0.0f, 1.0f}  // Purple
+    // };
 
-	std::array<FS_Model, 6> pointLights;
+	// std::array<FS_Model, 6> pointLights;
 
-	for (size_t i = 0; i < lightColors.size(); i++) {
-		pointLights[i] = FestiModel::createPointLight(festiDevice, gameObjects, .2f, glm::vec4(lightColors[i], .5f));
-		auto rotateLight = glm::rotate(glm::mat4(1.f), i * glm::two_pi<float>() / lightColors.size(), {0.f, -1.f, 0.f});
-		pointLights[i]->transform.translation = glm::vec3(rotateLight * glm::vec4(-1.f, .0f, -1.f, 1.f));
-	}
+	// for (size_t i = 0; i < lightColors.size(); i++) {
+	// 	pointLights[i] = FestiModel::createPointLight(festiDevice, gameObjects, .2f, glm::vec4(lightColors[i], .5f));
+	// 	auto rotateLight = glm::rotate(glm::mat4(1.f), i * glm::two_pi<float>() / lightColors.size(), {0.f, -1.f, 0.f});
+	// 	pointLights[i]->transform.translation = glm::vec3(rotateLight * glm::vec4(-1.f, .0f, -1.f, 1.f));
+	// }
 
-	auto rotateLight = glm::rotate(glm::mat4(1.f), glm::pi<float>() / 50, {0.f, -1.f, 0.f});
+	// auto rotateLight = glm::rotate(glm::mat4(1.f), glm::pi<float>() / 50, {0.f, -1.f, 0.f});
 
-	FestiModel::AsInstanceData asInstanceData1{};
-	asInstanceData1.parentObject = kida;
-	asInstanceData1.random.density = 0.f;
-	asInstanceData1.random.randomness = .3f;
-	asInstanceData1.layers = 2;
-	asInstanceData1.layerSeparation = -1.f;
-	asInstanceData1.random.solidity = 1.f;
-	asInstanceData1.building.columnDensity = 3.f;
-	asInstanceData1.building.alignToEdgeIdx = 0;
-	// asInstanceData1.random.minOffset.scale = {4.0f, 1.f, 5.0f};
-	// asInstanceData1.random.maxOffset.scale = {4.0f, 1.f, 5.0f};
-	// asInstanceData1.maxOffset.rotation = {10.0f, 10.0f, 10.0f};
-	asInstanceData1.building.strutsPerColumnRange = {3,3};
-	asInstanceData1.building.jengaFactor = 0.f;
+	// FestiModel::AsInstanceData asInstanceData1{};
+	// asInstanceData1.parentObject = kida;
+	// asInstanceData1.random.density = 0.f;
+	// asInstanceData1.random.randomness = .3f;
+	// asInstanceData1.layers = 2;
+	// asInstanceData1.layerSeparation = -1.f;
+	// asInstanceData1.random.solidity = 1.f;
+	// asInstanceData1.building.columnDensity = 3.f;
+	// asInstanceData1.building.alignToEdgeIdx = 0;
+	// // asInstanceData1.random.minOffset.scale = {4.0f, 1.f, 5.0f};
+	// // asInstanceData1.random.maxOffset.scale = {4.0f, 1.f, 5.0f};
+	// // asInstanceData1.maxOffset.rotation = {10.0f, 10.0f, 10.0f};
+	// asInstanceData1.building.strutsPerColumnRange = {3,3};
+	// asInstanceData1.building.jengaFactor = 0.f;
 
-	cube->asInstanceData = asInstanceData1;
-	cube->insertKeyframe(0, FS_KEYFRAME_AS_INSTANCE);
+	// cube->asInstanceData = asInstanceData1;
+	// cube->insertKeyframe(0, FS_KEYFRAME_AS_INSTANCE);
 
-	for (uint32_t f = 0; f < (uint32_t)SCENE_LENGTH; f++) {
+	// for (uint32_t f = 0; f < (uint32_t)SCENE_LENGTH; f++) {
 
-		// for (size_t i = 0; i < 12; i++) {
-		// 	gameObjects[idOf["cube"]]->faceData[i].uvOffset = {f * 0.1, f * 0.1};}
-		// gameObjects[idOf["cube"]]->insertKeyframe(f, FS_KEYFRAME_FACE_MATERIALS, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11});
+	// 	// for (size_t i = 0; i < 12; i++) {
+	// 	// 	gameObjects[idOf["cube"]]->faceData[i].uvOffset = {f * 0.1, f * 0.1};}
+	// 	// gameObjects[idOf["cube"]]->insertKeyframe(f, FS_KEYFRAME_FACE_MATERIALS, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11});
 
-		// FestiModel::AsInstanceData asInstanceData1{};
-		// asInstanceData1.parentObject = gameObjects[idOf["kida"]];
-		// asInstanceData1.density = (float)(f * 0.1);
-		// asInstanceData1.maxOffset.scale = {1.0f, 10.0f, 1.0f};
-		// asInstanceData1.maxOffset.rotation = {10.0f, 10.0f, 1.0f};
+	// 	// FestiModel::AsInstanceData asInstanceData1{};
+	// 	// asInstanceData1.parentObject = gameObjects[idOf["kida"]];
+	// 	// asInstanceData1.density = (float)(f * 0.1);
+	// 	// asInstanceData1.maxOffset.scale = {1.0f, 10.0f, 1.0f};
+	// 	// asInstanceData1.maxOffset.rotation = {10.0f, 10.0f, 1.0f};
 
-		cube->asInstanceData.random.seed = f;
-		// cube->insertKeyframe(f, FS_KEYFRAME_AS_INSTANCE);
+	// 	cube->asInstanceData.random.seed = f;
+	// 	// cube->insertKeyframe(f, FS_KEYFRAME_AS_INSTANCE);
 
-		kida->transform.rotation.y += 0.02;
-		kida->transform.rotation.x += 0.02;
-		kida->transform.translation.z += 0.001;
-		kida->transform.translation.y += 0.01;
-		// kida->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
+	// 	kida->transform.rotation.y += 0.02;
+	// 	kida->transform.rotation.x += 0.02;
+	// 	kida->transform.translation.z += 0.001;
+	// 	kida->transform.translation.y += 0.01;
+	// 	// kida->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
 
-		cube->transform.translation.y += 0.01f;
-		// cube->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
+	// 	cube->transform.translation.y += 0.01f;
+	// 	// cube->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
 
-		// gameObjects[idOf["cube"]]->transform.rotation += glm::vec3(0.1f, 0.1f, 0.f);
-		// gameObjects[idOf["cube"]]->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
+	// 	// gameObjects[idOf["cube"]]->transform.rotation += glm::vec3(0.1f, 0.1f, 0.f);
+	// 	// gameObjects[idOf["cube"]]->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
 
-		// gameObjects[idOf["kida"]]->transform.rotation += glm::vec3(0.005f, 0.0f, 0.f);
-		// gameObjects[idOf["kida"]]->transform.scale += glm::vec3(.01f, .01f, .01f);
-		// gameObjects[idOf["kida"]]->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
+	// 	// gameObjects[idOf["kida"]]->transform.rotation += glm::vec3(0.005f, 0.0f, 0.f);
+	// 	// gameObjects[idOf["kida"]]->transform.scale += glm::vec3(.01f, .01f, .01f);
+	// 	// gameObjects[idOf["kida"]]->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
 
-		// float lol = (float)f / 255.f ;
-		// scene->world->colour = glm::vec4(lol, lol * 2, 238.f / 255.f, lol);
-		// scene->insertKeyframe(f, FS_KEYFRAME_WORLD);
+	// 	// float lol = (float)f / 255.f ;
+	// 	// scene->world->colour = glm::vec4(lol, lol * 2, 238.f / 255.f, lol);
+	// 	// scene->insertKeyframe(f, FS_KEYFRAME_WORLD);
 
-		for (size_t i = 0; i < 6; i++) {
-			pointLights[i]->transform.translation = glm::vec3(rotateLight * glm::vec4(pointLights[i]->transform.translation, 1.f));
-			pointLights[i]->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
-		}
-	}
+	// 	for (size_t i = 0; i < 6; i++) {
+	// 		pointLights[i]->transform.translation = glm::vec3(rotateLight * glm::vec4(pointLights[i]->transform.translation, 1.f));
+	// 		pointLights[i]->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
+	// 	}
+	// }
 
-	// gameObjects[idOf["cube"]]->asInstanceData.makeStandAlone();
-	// gameObjects[idOf["cube"]]->insertKeyframe(10, FS_KEYFRAME_AS_INSTANCE_DATA);
+	// // gameObjects[idOf["cube"]]->asInstanceData.makeStandAlone();
+	// // gameObjects[idOf["cube"]]->insertKeyframe(10, FS_KEYFRAME_AS_INSTANCE_DATA);
 
 	// BLOCKS:
+	const std::string objPath = "models/BUILDINGS/";
+	const std::string mtlPath = "models/BUILDINGS/";
+	const std::string matPath = "materials/BUILDINGS/";
 
+	auto mask = FestiModel::createModelFromFile(
+		festiDevice, festiMaterials, gameObjects, "models/BUILDINGS/base.obj", "models/BUILDINGS", "materials/BUILDING");
+	mask->transform.scale = {.1f, .1f, .1f};
+	mask->visibility = false;
+	mask->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE | FS_KEYFRAME_VISIBILITY);
 
+	auto floor = FestiModel::createModelFromFile(
+		festiDevice, festiMaterials, gameObjects, "models/BUILDINGS/base.obj", "models/BUILDINGS", "materials/BUILDING");
+	floor->transform.scale = {1.f, 1.f, 1.f};
+	floor->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
+
+	FestiModel::AsInstanceData floorInst;
+	floorInst.parentObject = mask;
+	floorInst.layers = 2;
+	floorInst.layerSeparation = 5;
+
+	floor->asInstanceData = floorInst;
+	floor->insertKeyframe(0, FS_KEYFRAME_AS_INSTANCE);
 }
 
 void FestiApp::checkUserInput() {

@@ -471,6 +471,11 @@ std::vector<Instance> FestiModel::getTransformsToPointsOnSurface(const AsInstanc
 				// Add building Instances
 				addBuildingInstances(instanceMatrices, keyframe, v0, v1, v2, baseTransform, triangleNormal, genBldng);
 			}
+			else {
+				baseTransform.translation += h;
+				instanceMatrices.push_back(Instance{baseTransform.getModelMatrix(), baseTransform.getNormalMatrix()});
+				break;
+			}
 		}
 	}
     return instanceMatrices;

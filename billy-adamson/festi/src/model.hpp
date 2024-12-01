@@ -105,7 +105,7 @@ public:
     struct WorldProperties {
         glm::vec4 mainLightColour = {.0f, .0f, .0f, .0f};
         glm::vec2 mainLightDirection = {.0f, .0f};
-        glm::vec4 ambientColour = {.1f, .1f, .1f, .1f};
+        glm::vec4 ambientColour = {.1f, .1f, .1f, 1.f};
 
         glm::vec3 getDirectionVector();
 
