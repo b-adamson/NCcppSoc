@@ -228,6 +228,7 @@ public:
     uint32_t getId() {return id;}
     static uint32_t getMaterial(std::string name) {return materialNamesMap[name];}
     uint32_t getNumberOfFaces() {return indexCount / 3;}
+    float& getShapeArea() {return shapeArea;}
     std::vector<uint32_t> ALL_FACES() {std::vector<uint32_t> vec(indexCount / 3); std::iota(vec.begin(), vec.end(), 0); return vec;}
 
     std::vector<Instance> getTransformsToPointsOnSurface(const AsInstanceData& keyframe, Transform& childTransform);
@@ -243,7 +244,7 @@ public:
     bool hasIndexBuffer = false;
     bool hasVertexBuffer = false;
 
-    float shapeArea = 0;
+    // float shapeArea = 0;
     
 private:
     // helpers
@@ -276,6 +277,8 @@ private:
     FestiDevice& festiDevice;
 
     uint32_t id;
+
+    float shapeArea = 0;
 
 	std::unique_ptr<FestiBuffer> vertexBuffer = nullptr;
     std::vector<Vertex> vertices;

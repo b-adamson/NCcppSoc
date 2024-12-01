@@ -8,7 +8,7 @@ namespace festi {
 
 class FestiWindow {
 public:
-	FestiWindow(int w = 800, int h = 600, std::string name = "Festi");
+	FestiWindow(int w = 1920, int h = 1080, std::string name = "Festi");
 	~FestiWindow();
 
 	FestiWindow(const FestiWindow &) = delete;
