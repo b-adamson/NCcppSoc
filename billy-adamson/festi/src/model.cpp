@@ -368,7 +368,7 @@ void FestiModel::insertKeyframe(uint32_t frame, KeyFrameFlags flags, std::vector
 
     if (flags & FS_KEYFRAME_AS_INSTANCE) {
 		if (!hasVertexBuffer) throw std::runtime_error("Cannot keyframe models that don't have vertices");
-		if (asInstanceData.random.randomness < 0) throw std::runtime_error("Randomness must be non-negative");
+		if (asInstanceData.random.randomness <= 0) throw std::runtime_error("Randomness must be positive");
 		if (asInstanceData.random.solidity <= 0 || asInstanceData.random.solidity > 1) throw std::runtime_error("Solidity must be 0 < s <= 1");
         keyframes.asInstanceData[frame] = asInstanceData;
     }
@@ -425,6 +425,7 @@ std::vector<Instance> FestiModel::getTransformsToPointsOnSurface(const AsInstanc
 
 	Transform& parentTransform = transform;
 	const glm::mat4& parentModelMatrix = parentTransform.getModelMatrix();
+	const glm::vec3 up = glm::normalize(parentTransform.getNormalMatrix() * glm::vec4(keyframe.parentObject->facing, 1.f));
 
 	for (size_t layer = 0; layer < keyframe.layers; ++layer) {
 		for (size_t i = 0; i < indices.size(); i += 3) {
@@ -440,11 +441,12 @@ std::vector<Instance> FestiModel::getTransformsToPointsOnSurface(const AsInstanc
 
 			const glm::vec3 norm = glm::cross(v1 - v0, v2 - v0);
 			const float triangleArea = glm::length(norm) * .5f;
-			const glm::vec3 triangleNormal = glm::normalize(norm);
+			// const glm::vec3 triangleNormal = glm::normalize(norm);
+
 			std::vector<std::pair<float, float>> uvPairs;
 
 			// Raise vertices of parent up to correct height of current layer
-			const glm::vec4 h = glm::vec4(layer * keyframe.layerSeparation * triangleNormal, 1.f);
+			const glm::vec4 h = glm::vec4(layer * keyframe.layerSeparation * up, 1.f);
 			v0 += h;
 			v1 += h;
 			v2 += h;
@@ -453,10 +455,10 @@ std::vector<Instance> FestiModel::getTransformsToPointsOnSurface(const AsInstanc
 			Transform baseTransform = childTransform;
 
 			// Move to parent
-			baseTransform.translation = 
-				glm::normalize(glm::vec3(parentModelMatrix[0])) * baseTransform.translation[0] + 
-				glm::normalize(glm::vec3(parentModelMatrix[1])) * baseTransform.translation[1] +
-				glm::normalize(glm::vec3(parentModelMatrix[2])) * baseTransform.translation[2];
+			// baseTransform.translation = 
+			// 	glm::normalize(glm::vec3(parentModelMatrix[0])) * baseTransform.translation[0] + 
+			// 	glm::normalize(glm::vec3(parentModelMatrix[1])) * baseTransform.translation[1] +
+			// 	glm::normalize(glm::vec3(parentModelMatrix[2])) * baseTransform.translation[2];
 			baseTransform.scale *= parentTransform.scale;
 			baseTransform.rotation += parentTransform.rotation;
 
@@ -469,12 +471,14 @@ std::vector<Instance> FestiModel::getTransformsToPointsOnSurface(const AsInstanc
 			}
 			if (keyframe.building.columnDensity != 0) {
 				// Add building Instances
-				addBuildingInstances(instanceMatrices, keyframe, v0, v1, v2, baseTransform, triangleNormal, genBldng);
+				addBuildingInstances(instanceMatrices, keyframe, v0, v1, v2, baseTransform, up, genBldng);
 			}
 			else {
-				baseTransform.translation += h;
-				instanceMatrices.push_back(Instance{baseTransform.getModelMatrix(), baseTransform.getNormalMatrix()});
-				break;
+				// baseTransform.randomOffset(keyframe.base.minOffset, keyframe.base.maxOffset, baseTransform.getModelMatrix(), genRnd);
+				// baseTransform.translation += h;
+				// // std::cout << baseTransform.translation[1];
+				// instanceMatrices.push_back(Instance{baseTransform.getModelMatrix(), baseTransform.getNormalMatrix()});
+				// break;
 			}
 		}
 	}
@@ -538,7 +542,7 @@ void FestiModel::addBuildingInstances(
 	const glm::vec3& v1,
 	const glm::vec3& v2,
 	Transform& baseTransform,
-	const glm::vec3& triangleNormal,
+	const glm::vec3& up,
 	std::mt19937& gen	
 	) {
 
@@ -560,18 +564,18 @@ void FestiModel::addBuildingInstances(
 			assert(false && "Edge index out of range for building instancing");
 	}
 
-	for (size_t k = 0; k < (keyframe.building.columnDensity + 1); ++k) {
+	for (size_t k = 0; k < (keyframe.building.columnDensity); ++k) {
 		// COLUMN
 		Transform columnTransform = baseTransform;
 		
 		// Find equation of midpoint and translate along it and adjust dimensions accordingly
 		float lambda = 1.f - static_cast<float>(k) / keyframe.building.columnDensity;
 		columnTransform.translation += c0 + lambda * ((c1 + c2) / 2.f - c0);
-		columnTransform.scale.x *= lambda * glm::length(c1 - c2);
-		columnTransform.scale.z *= keyframe.layerSeparation;
+		columnTransform.scale.z *= lambda; // Remember its okay to not scale against parent basis, because this is sorted in making modelMat
+		columnTransform.scale.y *= keyframe.layerSeparation;
 
 		// Raise points up to centre of layer
-		columnTransform.translation += triangleNormal * keyframe.layerSeparation / 2.f;
+		columnTransform.translation += up * keyframe.layerSeparation / 2.f;
 
 		// Apply random column offsets
 		columnTransform.randomOffset(
@@ -597,10 +601,10 @@ void FestiModel::addBuildingInstances(
 			// Translate to midpoint and correct height
 			strutTransform.translation += c0 + lambda * ((c1 + c2) / 2.f - c0);
 			strutTransform.translation += 
-				triangleNormal * static_cast<float>(i + .5f) * keyframe.layerSeparation / static_cast<float>(strutCount);
+				up * static_cast<float>(i + .5f) * keyframe.layerSeparation / static_cast<float>(strutCount);
 			
 			// Scale to length of surface and height of layer
-			strutTransform.scale.x *= lambda * glm::length(c1 - c2);
+			strutTransform.scale.z *= lambda;
 			strutTransform.scale.y *= 1.f / (strutCount + 1);
 			
 			// Add instance
@@ -641,6 +645,5 @@ FestiModel::Transform& FestiModel::Transform::randomOffset(
 	}
 	return *this;
 }
-
 
 }  // namespace festi

@@ -14,7 +14,7 @@ vt 1.0 1.0
 vt 1.0 0.0
 
 # Normals
-vn 0.0000 -1.0000 0.0000
+vn 0.0000 1.0000 0.0000
 
 # Apply the material to the entire object
 usemtl kida

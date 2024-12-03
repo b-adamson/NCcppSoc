@@ -39,7 +39,7 @@ private:
 	
 	// helpers
 	void setScene(std::shared_ptr<FestiModel> scene);
-	void checkUserInput();
+	void checkInputsForSceneUpdates();
 	void setSceneToCurrentKeyFrame(
 		std::vector<uint32_t>& MssboOffset, 
 		std::unique_ptr<FestiBuffer>& MssboBuffer);
@@ -47,11 +47,11 @@ private:
 		std::shared_ptr<FestiModel>& obj, 
 		uint32_t MssboOffset, 
 		std::unique_ptr<FestiBuffer>& MssboBuffer);
+	bool runOnceIfKeyPressed(int key, std::function<void()> onPress);
 
 	uint32_t sceneClockFrequency = 1;
 	bool isRunning = false;
 
-	// helpers
 	FS_AdvanceFrame advanceFrame = FS_AdvanceFrame::UNSPECIFIED;
 
 	const uint32_t MAX_FPS = 120;

@@ -124,12 +124,15 @@ void FestiApp::run() {
 		perFrameSetLayout.getDescriptorSetLayout()};
 
 	// Create objects for camera and shadow pass
-	FestiCamera camera{festiWindow};
-	camera.transform.translation = {5.f, 1.f, 0.f};
-	camera.transform.rotation.y = -glm::pi<float>() / 2;
-	camera.setPerspectiveProjection(glm::radians(40.f), festiRenderer.getAspectRatio(), .1f, 1000.f);
 	FestiCamera mainLight{festiWindow};
-	mainLight.setOrthographicProjection(-10., 10., -10., 10., .1f, 20.f);
+	FestiCamera camera{festiWindow};
+	// camera.transform.translation = {5.f, 1.f, 0.f};
+	// camera.transform.rotation.y = -glm::pi<float>() / 2;
+
+	camera.transform.rotation.y = 0;
+    camera.transform.translation = {5.f, 1.f, 0.f};
+
+	camera.setPerspectiveProjection(glm::radians(40.f), festiRenderer.getAspectRatio(), .1f, 1000.f);
 
 	auto lastFrameTime = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<float> frameDuration{1.0f / MAX_FPS};
@@ -150,10 +153,11 @@ void FestiApp::run() {
 		
 		// Poll events
 		glfwPollEvents();
-		checkUserInput();
+		checkInputsForSceneUpdates();
 		
 		// Check for key presses and adjust viewerObject in world space
 		camera.updateCameraFromKeyPresses(dt.count());
+
 
 		if (auto commandBuffer = festiRenderer.beginFrame()) {
 			uint32_t frameBufferIndex = festiRenderer.getFrameBufferIdx();
@@ -161,10 +165,11 @@ void FestiApp::run() {
 			// Set scene to current keyframe
 			setSceneToCurrentKeyFrame(Mssbo.offsets, MssboBuffer);
 			
-			// Set light direction
+			// Set light direction and clipping distance
 			glm::vec3 lightDir = glm::vec3(worldObj->world->mainLightDirection, 0.f);
-			mainLight.transform.translation = worldObj->world->getDirectionVector() * -10.f;
+			mainLight.transform.translation = worldObj->world->getDirectionVector() * worldObj->world->clipDist[0];
 			mainLight.transform.rotation = lightDir;
+			mainLight.setOrthographicProjection(-10., 10., -10., 10., .1f, worldObj->world->clipDist[1]);
 
 			// Helper struct to pass information to render systems for per frame information
 			FrameInfo frameInfo {
@@ -400,174 +405,249 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 	//////////////////////////////////////////////////
 	// TEST SCENE:
 
-	// auto kida = FestiModel::createModelFromFile(
-	// 	festiDevice, festiMaterials, gameObjects, "models/TEST/kida.obj", "models/TEST", "materials/TEST");
-	// kida->transform.translation = {0.f, -.5f, 0.f};
-	// kida->transform.scale = {1.f, 1.f, 1.f};
-	// kida->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
+	auto kida = FestiModel::createModelFromFile(
+		festiDevice, festiMaterials, gameObjects, "models/TEST/kida.obj", "models/TEST", "materials/TEST");
+	kida->transform.translation = {0.f, -.5f, 0.f};
+	kida->transform.scale = {1.f, 1.f, 1.f};
+	kida->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
 
-	// auto cube = FestiModel::createModelFromFile(
-	// 	festiDevice, festiMaterials, gameObjects, "models/TEST/cube.obj", "models/TEST", "materials/TEST");
-	// cube->transform.translation = {0.f, .0f, 0.f};
-	// cube->transform.scale = {0.1f, 0.1f, 0.1f};
-	// cube->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
+	auto cube = FestiModel::createModelFromFile(
+		festiDevice, festiMaterials, gameObjects, "models/TEST/cube.obj", "models/TEST", "materials/TEST");
+	cube->transform.translation = {0.f, .0f, 0.f};
+	cube->transform.scale = {0.1f, 0.1f, 0.1f};
+	cube->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
 	
-    // std::vector<glm::vec3> lightColors = {
-    //     {1.0f, 0.0f, 0.0f}, // Red
-    //     {0.0f, 1.0f, 0.0f}, // Green
-    //     {0.0f, 0.0f, 1.0f}, // Blue
-    //     {1.0f, 1.0f, 0.0f}, // Yellow
-    //     {1.0f, 0.5f, 0.0f}, // Orange
-    //     {0.5f, 0.0f, 1.0f}  // Purple
-    // };
-
-	// std::array<FS_Model, 6> pointLights;
-
-	// for (size_t i = 0; i < lightColors.size(); i++) {
-	// 	pointLights[i] = FestiModel::createPointLight(festiDevice, gameObjects, .2f, glm::vec4(lightColors[i], .5f));
-	// 	auto rotateLight = glm::rotate(glm::mat4(1.f), i * glm::two_pi<float>() / lightColors.size(), {0.f, -1.f, 0.f});
-	// 	pointLights[i]->transform.translation = glm::vec3(rotateLight * glm::vec4(-1.f, .0f, -1.f, 1.f));
-	// }
-
-	// auto rotateLight = glm::rotate(glm::mat4(1.f), glm::pi<float>() / 50, {0.f, -1.f, 0.f});
-
-	// FestiModel::AsInstanceData asInstanceData1{};
-	// asInstanceData1.parentObject = kida;
-	// asInstanceData1.random.density = 0.f;
-	// asInstanceData1.random.randomness = .3f;
-	// asInstanceData1.layers = 2;
-	// asInstanceData1.layerSeparation = -1.f;
-	// asInstanceData1.random.solidity = 1.f;
-	// asInstanceData1.building.columnDensity = 3.f;
-	// asInstanceData1.building.alignToEdgeIdx = 0;
-	// // asInstanceData1.random.minOffset.scale = {4.0f, 1.f, 5.0f};
-	// // asInstanceData1.random.maxOffset.scale = {4.0f, 1.f, 5.0f};
-	// // asInstanceData1.maxOffset.rotation = {10.0f, 10.0f, 10.0f};
-	// asInstanceData1.building.strutsPerColumnRange = {3,3};
-	// asInstanceData1.building.jengaFactor = 0.f;
-
-	// cube->asInstanceData = asInstanceData1;
-	// cube->insertKeyframe(0, FS_KEYFRAME_AS_INSTANCE);
-
-	// for (uint32_t f = 0; f < (uint32_t)SCENE_LENGTH; f++) {
-
-	// 	// for (size_t i = 0; i < 12; i++) {
-	// 	// 	gameObjects[idOf["cube"]]->faceData[i].uvOffset = {f * 0.1, f * 0.1};}
-	// 	// gameObjects[idOf["cube"]]->insertKeyframe(f, FS_KEYFRAME_FACE_MATERIALS, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11});
-
-	// 	// FestiModel::AsInstanceData asInstanceData1{};
-	// 	// asInstanceData1.parentObject = gameObjects[idOf["kida"]];
-	// 	// asInstanceData1.density = (float)(f * 0.1);
-	// 	// asInstanceData1.maxOffset.scale = {1.0f, 10.0f, 1.0f};
-	// 	// asInstanceData1.maxOffset.rotation = {10.0f, 10.0f, 1.0f};
-
-	// 	cube->asInstanceData.random.seed = f;
-	// 	// cube->insertKeyframe(f, FS_KEYFRAME_AS_INSTANCE);
-
-	// 	kida->transform.rotation.y += 0.02;
-	// 	kida->transform.rotation.x += 0.02;
-	// 	kida->transform.translation.z += 0.001;
-	// 	kida->transform.translation.y += 0.01;
-	// 	// kida->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
-
-	// 	cube->transform.translation.y += 0.01f;
-	// 	// cube->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
-
-	// 	// gameObjects[idOf["cube"]]->transform.rotation += glm::vec3(0.1f, 0.1f, 0.f);
-	// 	// gameObjects[idOf["cube"]]->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
-
-	// 	// gameObjects[idOf["kida"]]->transform.rotation += glm::vec3(0.005f, 0.0f, 0.f);
-	// 	// gameObjects[idOf["kida"]]->transform.scale += glm::vec3(.01f, .01f, .01f);
-	// 	// gameObjects[idOf["kida"]]->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
-
-	// 	// float lol = (float)f / 255.f ;
-	// 	// scene->world->colour = glm::vec4(lol, lol * 2, 238.f / 255.f, lol);
-	// 	// scene->insertKeyframe(f, FS_KEYFRAME_WORLD);
-
-	// 	for (size_t i = 0; i < 6; i++) {
-	// 		pointLights[i]->transform.translation = glm::vec3(rotateLight * glm::vec4(pointLights[i]->transform.translation, 1.f));
-	// 		pointLights[i]->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
-	// 	}
-	// }
-
-	// // gameObjects[idOf["cube"]]->asInstanceData.makeStandAlone();
-	// // gameObjects[idOf["cube"]]->insertKeyframe(10, FS_KEYFRAME_AS_INSTANCE_DATA);
-
-	// BLOCKS:
-	const std::string objPath = "models/BUILDINGS/";
-	const std::string mtlPath = "models/BUILDINGS/";
-	const std::string matPath = "materials/BUILDINGS/";
-
-	auto mask = FestiModel::createModelFromFile(
-		festiDevice, festiMaterials, gameObjects, "models/BUILDINGS/base.obj", "models/BUILDINGS", "materials/BUILDING");
-	mask->transform.scale = {.1f, .1f, .1f};
-	mask->visibility = false;
-	mask->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE | FS_KEYFRAME_VISIBILITY);
-
-	auto floor = FestiModel::createModelFromFile(
-		festiDevice, festiMaterials, gameObjects, "models/BUILDINGS/base.obj", "models/BUILDINGS", "materials/BUILDING");
-	floor->transform.scale = {1.f, 1.f, 1.f};
-	floor->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
-
-	FestiModel::AsInstanceData floorInst;
-	floorInst.parentObject = mask;
-	floorInst.layers = 2;
-	floorInst.layerSeparation = 5;
-
-	floor->asInstanceData = floorInst;
-	floor->insertKeyframe(0, FS_KEYFRAME_AS_INSTANCE);
-}
-
-void FestiApp::checkUserInput() {
-    static bool upKeyWasPressed = false;
-    static bool downKeyWasPressed = false;
-	static bool rightKeyWasPressed = false;
-	static bool leftKeyWasPressed = false;
-	static bool spaceKeyWasPressed = false;
-
-    auto executeIfKeyPressed = [this](int key, bool& keyWasPressed, std::function<void()> onPress) {
-        if (glfwGetKey(festiWindow.getGLFWwindow(), key) == GLFW_PRESS) {
-            if (keyWasPressed == false) {
-                onPress();
-                keyWasPressed = true;
-            }
-        } else {
-            keyWasPressed = false;
-        }
+    std::vector<glm::vec3> lightColors = {
+        {1.0f, 0.0f, 0.0f}, // Red
+        {0.0f, 1.0f, 0.0f}, // Green
+        {0.0f, 0.0f, 1.0f}, // Blue
+        {1.0f, 1.0f, 0.0f}, // Yellow
+        {1.0f, 0.5f, 0.0f}, // Orange
+        {0.5f, 0.0f, 1.0f}  // Purple
     };
 
-    executeIfKeyPressed(GLFW_KEY_UP, upKeyWasPressed, [this]() { 
+	std::array<FS_Model, 6> pointLights;
+
+	for (size_t i = 0; i < lightColors.size(); i++) {
+		pointLights[i] = FestiModel::createPointLight(festiDevice, gameObjects, .2f, glm::vec4(lightColors[i], .5f));
+		auto rotateLight = glm::rotate(glm::mat4(1.f), i * glm::two_pi<float>() / lightColors.size(), {0.f, -1.f, 0.f});
+		pointLights[i]->transform.translation = glm::vec3(rotateLight * glm::vec4(-1.f, .0f, -1.f, 1.f));
+	}
+
+	auto rotateLight = glm::rotate(glm::mat4(1.f), glm::pi<float>() / 50, {0.f, -1.f, 0.f});
+
+	FestiModel::AsInstanceData asInstanceData1{};
+	asInstanceData1.parentObject = kida;
+	asInstanceData1.random.density = 0.f;
+	asInstanceData1.random.randomness = .3f;
+	asInstanceData1.layers = 1;
+	asInstanceData1.layerSeparation = 5.f;
+	asInstanceData1.random.solidity = 1.f;
+	asInstanceData1.building.columnDensity = 3.f;
+	asInstanceData1.building.alignToEdgeIdx = 0;
+	// asInstanceData1.random.minOffset.scale = {4.0f, 1.f, 5.0f};
+	// asInstanceData1.random.maxOffset.scale = {4.0f, 1.f, 5.0f};
+	// asInstanceData1.maxOffset.rotation = {10.0f, 10.0f, 10.0f};
+	asInstanceData1.building.strutsPerColumnRange = {3,3};
+	asInstanceData1.building.jengaFactor = 0.f;
+
+	cube->asInstanceData = asInstanceData1;
+	cube->insertKeyframe(0, FS_KEYFRAME_AS_INSTANCE);
+
+	for (uint32_t f = 0; f < (uint32_t)SCENE_LENGTH; f++) {
+
+		// for (size_t i = 0; i < 12; i++) {
+		// 	gameObjects[idOf["cube"]]->faceData[i].uvOffset = {f * 0.1, f * 0.1};}
+		// gameObjects[idOf["cube"]]->insertKeyframe(f, FS_KEYFRAME_FACE_MATERIALS, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11});
+
+		// FestiModel::AsInstanceData asInstanceData1{};
+		// asInstanceData1.parentObject = gameObjects[idOf["kida"]];
+		// asInstanceData1.density = (float)(f * 0.1);
+		// asInstanceData1.maxOffset.scale = {1.0f, 10.0f, 1.0f};
+		// asInstanceData1.maxOffset.rotation = {10.0f, 10.0f, 1.0f};
+
+		cube->asInstanceData.random.seed = f;
+		// cube->insertKeyframe(f, FS_KEYFRAME_AS_INSTANCE);
+
+		kida->transform.rotation.y += 0.02;
+		// kida->transform.rotation.x += 0.02;
+		// kida->transform.rotation.z += 0.02;
+		// kida->transform.translation.z += 0.001;
+		// kida->transform.translation.y += 0.01;
+		kida->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
+
+		cube->transform.translation.y += 0.01f;
+		// cube->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
+
+		// gameObjects[idOf["cube"]]->transform.rotation += glm::vec3(0.1f, 0.1f, 0.f);
+		// gameObjects[idOf["cube"]]->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
+
+		// gameObjects[idOf["kida"]]->transform.rotation += glm::vec3(0.005f, 0.0f, 0.f);
+		// gameObjects[idOf["kida"]]->transform.scale += glm::vec3(.01f, .01f, .01f);
+		// gameObjects[idOf["kida"]]->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
+
+		// float lol = (float)f / 255.f ;
+		// scene->world->colour = glm::vec4(lol, lol * 2, 238.f / 255.f, lol);
+		// scene->insertKeyframe(f, FS_KEYFRAME_WORLD);
+
+		for (size_t i = 0; i < 6; i++) {
+			pointLights[i]->transform.translation = glm::vec3(rotateLight * glm::vec4(pointLights[i]->transform.translation, 1.f));
+			pointLights[i]->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
+		}
+	}
+
+	// gameObjects[idOf["cube"]]->asInstanceData.makeStandAlone();
+	// gameObjects[idOf["cube"]]->insertKeyframe(10, FS_KEYFRAME_AS_INSTANCE_DATA);
+
+	//////////////////////////////////
+	// // BUILDINGS
+	// const std::string objPath = "models/BUILDINGS/";
+	// const std::string mtlPath = "models/BUILDINGS";
+	// const std::string matPath = "materials/BUILDINGS";
+
+	// scene->world->mainLightColour = {255.f / 255.f, 255.f / 255.f, 255.f / 255.f, 1.f};
+	// scene->world->ambientColour = {1.f, 1.f, 1.f, .1f};
+	// scene->world->mainLightDirection = {.4f, glm::pi<float>() / 4};
+	// scene->world->clipDist = {-30.f, 50.f};	
+	// scene->insertKeyframe(0, FS_KEYFRAME_WORLD);
+
+	// auto mask = FestiModel::createModelFromFile(
+	// 	festiDevice, festiMaterials, gameObjects, objPath + "mask.obj", mtlPath, matPath);
+	// mask->transform.scale = {.3f, .1f, .6f};
+	// mask->transform.translation.z += 20.f;
+	// mask->visibility = false;
+	// mask->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE | FS_KEYFRAME_VISIBILITY);
+
+	// auto mask1 = FestiModel::createModelFromFile(
+	// 	festiDevice, festiMaterials, gameObjects, objPath + "mask.obj", mtlPath, matPath);
+	// mask1->transform.scale = {.3f, .1f, .6f};
+	// mask1->transform.translation.x += 20.f;
+	// mask1->transform.rotation.y += glm::pi<float>() / 2;
+	// mask1->visibility = true;
+	// mask1->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE | FS_KEYFRAME_VISIBILITY);
+
+	// auto floor = FestiModel::createModelFromFile(
+	// 	festiDevice, festiMaterials, gameObjects, objPath + "base.obj", mtlPath, matPath);
+	// floor->transform.scale = {1.f, 2.f, .3f};
+	// floor->transform.translation.y -= .5f;
+	// floor->transform.translation.z += 2.4f;
+	// floor->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
+
+	// auto strut = FestiModel::createModelFromFile(
+	// 	festiDevice, festiMaterials, gameObjects, objPath + "cube.obj", mtlPath, matPath);
+	// strut->transform.scale = {.5, 1.f, 3};
+	// strut->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
+
+	// auto strut1 = FestiModel::createModelFromFile(
+	// 	festiDevice, festiMaterials, gameObjects, objPath + "cube.obj", mtlPath, matPath);
+	// strut1->transform.scale = {.5, 1.f, 3};
+	// strut1->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
+
+	// auto floor1 = FestiModel::createModelFromFile(
+	// 	festiDevice, festiMaterials, gameObjects, objPath + "base.obj", mtlPath, matPath);
+	// floor1->transform.scale = {1.f, 2.f, .3f};
+	// floor1->transform.translation.y -= .5f;
+	// floor1->transform.translation.x += 2.4f;
+	// floor1->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
+
+	// FestiModel::AsInstanceData floorInst;
+	// floorInst.parentObject = mask;
+	// floorInst.layers = 2;
+	// floorInst.layerSeparation = 5;
+	// floorInst.building.columnDensity = 1;
+
+	// floor->asInstanceData = floorInst;
+	// floor->insertKeyframe(0, FS_KEYFRAME_AS_INSTANCE);
+	// floor1->asInstanceData = floorInst;
+	// floor1->asInstanceData.parentObject = mask1;
+	// floor1->insertKeyframe(0, FS_KEYFRAME_AS_INSTANCE);
+
+	// FestiModel::AsInstanceData strutInst;
+	// strutInst.parentObject = mask;
+	// strutInst.layers = 2;
+	// strutInst.layerSeparation = 5;
+	// strutInst.building.columnDensity = 30;
+	// strutInst.building.strutsPerColumnRange = {4, 4};
+	// strutInst.building.maxStrutOffset.scale = {3.f, 5.f, 5.9f};
+	// strutInst.building.minStrutOffset.scale = {3.f, 5.f, 5.9f};
+	// strutInst.building.minStrutOffset.translation = {0, 0, -1.f};
+	// strutInst.building.maxStrutOffset.translation = {0, 0, -1.f};
+	// strutInst.building.minColumnOffset.scale = {1.f, 5.f, 5.9f};
+	// strutInst.building.maxColumnOffset.scale = {1.f, 5.f, 5.9f};
+	// strutInst.building.alignToEdgeIdx = 1;
+
+	// strut->asInstanceData = strutInst;
+	// strut->insertKeyframe(0, FS_KEYFRAME_AS_INSTANCE);
+	// strut1->asInstanceData = strutInst;
+	// strut1->asInstanceData.parentObject = mask1;
+	// strut1->insertKeyframe(0, FS_KEYFRAME_AS_INSTANCE);
+
+	// for (size_t f = 0; f < SCENE_LENGTH; ++f) {
+	// 	mask->transform.translation.z += 0.01f;
+	// 	// mask->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
+	// }
+}
+
+void FestiApp::checkInputsForSceneUpdates() {
+    runOnceIfKeyPressed(GLFW_KEY_UP, [this]() { 
 		sceneClockFrequency = std::floor(sceneClockFrequency / 1.2); 
 		sceneClockFrequency = glm::clamp(sceneClockFrequency, (uint32_t)1, MAX_FPS);
 	});
-    executeIfKeyPressed(GLFW_KEY_DOWN, downKeyWasPressed, [this]() { 
+    runOnceIfKeyPressed(GLFW_KEY_DOWN, [this]() { 
 		sceneClockFrequency = std::ceil(sceneClockFrequency * 1.2); 
 		sceneClockFrequency = glm::clamp(sceneClockFrequency, (uint32_t)1, MAX_FPS);
 	});
-    executeIfKeyPressed(GLFW_KEY_SPACE, spaceKeyWasPressed, [this]() {isRunning = !isRunning;});
-    executeIfKeyPressed(GLFW_KEY_RIGHT, rightKeyWasPressed, [this]() {advanceFrame = FS_AdvanceFrame::FORWARD;});
-	executeIfKeyPressed(GLFW_KEY_LEFT, leftKeyWasPressed, [this]() {advanceFrame = FS_AdvanceFrame::BACKWARD;});
+    runOnceIfKeyPressed(GLFW_KEY_SPACE, [this]() {isRunning = !isRunning;});
+    runOnceIfKeyPressed(GLFW_KEY_RIGHT, [this]() {advanceFrame = FS_AdvanceFrame::FORWARD;});
+	runOnceIfKeyPressed(GLFW_KEY_LEFT, [this]() {advanceFrame = FS_AdvanceFrame::BACKWARD;});
 }
 
 void FestiApp::setSceneToCurrentKeyFrame(
 	std::vector<uint32_t>& MssboOffsets, 
 	std::unique_ptr<FestiBuffer>& MssboBuffer) {
-	if ((((engineFrameIdx % sceneClockFrequency == 0) && (sceneClockFrequency != 64) && isRunning )|| sceneFrameIdx == -1) 
-		|| advanceFrame == FS_AdvanceFrame::FORWARD || advanceFrame == FS_AdvanceFrame::BACKWARD) {
-		if (advanceFrame == FS_AdvanceFrame::BACKWARD) {
+	if ((((engineFrameIdx % sceneClockFrequency == 0) && (sceneClockFrequency != 64)) || sceneFrameIdx == -1) 
+		/*|| advanceFrame == FS_AdvanceFrame::FORWARD || advanceFrame == FS_AdvanceFrame::BACKWARD*/) {
+			bool result = runOnceIfKeyPressed(GLFW_KEY_LEFT, []() {});
+			std::cout << runOnceIfKeyPressed(GLFW_KEY_LEFT, []() {});
+		if (result) {
+			std::cout << 20;
 			sceneFrameIdx--; 
 			if (sceneFrameIdx < 0) {sceneFrameIdx = SCENE_LENGTH - 1;}
-			advanceFrame = FS_AdvanceFrame::UNSPECIFIED;
-		} else {
-			sceneFrameIdx++;
+		} else if (runOnceIfKeyPressed(GLFW_KEY_RIGHT, []() {}) || isRunning) {
+
+			sceneFrameIdx++; 
 			if (sceneFrameIdx == SCENE_LENGTH) {sceneFrameIdx = 0;}
-			advanceFrame = FS_AdvanceFrame::UNSPECIFIED;
 		}
+		//  {
+		// // 	sceneFrameIdx--; 
+		// // 	if (sceneFrameIdx < 0) {sceneFrameIdx = SCENE_LENGTH - 1;}
+		// // 	advanceFrame = FS_AdvanceFrame::UNSPECIFIED;
+
+		// 	sceneFrameIdx++;
+		// 	if (sceneFrameIdx == SCENE_LENGTH) {sceneFrameIdx = 0;}
+		// 	// advanceFrame = FS_AdvanceFrame::UNSPECIFIED;
+		// }
 		for (size_t i = 0; i < gameObjects.size(); i++) {
 			setObjectToCurrentKeyFrame(gameObjects[i], MssboOffsets[i], MssboBuffer);
 		}
 	}
 }
+
+bool FestiApp::runOnceIfKeyPressed(int key, std::function<void()> onPress) {
+	static std::unordered_map<int, bool> keyWasPressedMap;
+	bool& keyWasPressed = keyWasPressedMap[key];
+
+	if (glfwGetKey(festiWindow.getGLFWwindow(), key) == GLFW_PRESS) {
+		if (keyWasPressed == false) {
+			onPress();
+			keyWasPressed = true;
+			return true; 
+		}
+	} else {
+		keyWasPressed = false;
+	}
+	return false;
+};
 
 void FestiApp::setObjectToCurrentKeyFrame(
 	std::shared_ptr<FestiModel>& obj, 

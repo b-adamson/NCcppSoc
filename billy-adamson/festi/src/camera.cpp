@@ -148,7 +148,7 @@ void FestiCamera::scroll_callback(GLFWwindow* window, double xoffset, double yof
         moveSpeed -= 1;
         if (moveSpeed < 1) moveSpeed = 1;
     }
-	moveSpeed = glm::clamp(moveSpeed, 0.0f, 35.0f);
+	moveSpeed = glm::clamp(moveSpeed, 0.0f, 500.0f);
 }
 
 void FestiCamera::mouse_callback(GLFWwindow* window, double xpos, double ypos) {

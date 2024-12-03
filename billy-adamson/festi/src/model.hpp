@@ -106,13 +106,16 @@ public:
         glm::vec4 mainLightColour = {.0f, .0f, .0f, .0f};
         glm::vec2 mainLightDirection = {.0f, .0f};
         glm::vec4 ambientColour = {.1f, .1f, .1f, 1.f};
+        glm::vec2 clipDist = {-10.f, 20.f};
 
         glm::vec3 getDirectionVector();
 
         bool operator==(const WorldProperties& other) {
             return mainLightColour == other.mainLightColour && 
                 mainLightDirection == other.mainLightDirection && 
-                ambientColour == other.ambientColour;}
+                ambientColour == other.ambientColour &&
+                clipDist == other.clipDist;
+            }
 
         bool operator!=(const WorldProperties& other) {
             return !(*this == other);
@@ -153,6 +156,11 @@ public:
             Transform minOffset{};
             Transform maxOffset{};            
         } random;
+
+        struct DefaultInstancesSettings {
+            Transform minOffset{};
+            Transform maxOffset{};
+        } base;
 
         struct BuildingInstancesSettings {
             uint32_t alignToEdgeIdx = 0;
@@ -243,8 +251,6 @@ public:
     std::unique_ptr<WorldProperties> world = nullptr;
     bool hasIndexBuffer = false;
     bool hasVertexBuffer = false;
-
-    // float shapeArea = 0;
     
 private:
     // helpers
@@ -270,15 +276,15 @@ private:
         const glm::vec3& v1,
         const glm::vec3& v2,
 	    Transform& baseTransform,
-        const glm::vec3& triangleNormal,
+        const glm::vec3& up,
         std::mt19937& gen	
     );
 
     FestiDevice& festiDevice;
 
     uint32_t id;
-
     float shapeArea = 0;
+    glm::vec3 facing = {0.f, 1.f, 0.f};
 
 	std::unique_ptr<FestiBuffer> vertexBuffer = nullptr;
     std::vector<Vertex> vertices;
@@ -295,13 +301,5 @@ private:
 
     friend class FestiMaterials;
 };
-
-// inline FestiModel::Transform operator*(float scalar, const FestiModel::Transform& transform) {
-//     FestiModel::Transform result;
-//     result.translation = transform.translation * scalar;  
-//     result.scale = transform.scale * scalar;             
-//     result.rotation = transform.rotation * scalar;   
-//     return result;
-// }
 
 } // festi namespace
