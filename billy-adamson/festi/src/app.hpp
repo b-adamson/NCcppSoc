@@ -16,12 +16,6 @@
 
 namespace festi {
 
-enum class FS_AdvanceFrame {
-	FORWARD,
-	BACKWARD,
-	UNSPECIFIED
-};
-
 class FestiApp {
 public:
     FestiApp() = default;
@@ -51,8 +45,6 @@ private:
 
 	uint32_t sceneClockFrequency = 1;
 	bool isRunning = false;
-
-	FS_AdvanceFrame advanceFrame = FS_AdvanceFrame::UNSPECIFIED;
 
 	const uint32_t MAX_FPS = 120;
 	const int SCENE_LENGTH = 300;

@@ -598,35 +598,19 @@ void FestiApp::checkInputsForSceneUpdates() {
 		sceneClockFrequency = glm::clamp(sceneClockFrequency, (uint32_t)1, MAX_FPS);
 	});
     runOnceIfKeyPressed(GLFW_KEY_SPACE, [this]() {isRunning = !isRunning;});
-    runOnceIfKeyPressed(GLFW_KEY_RIGHT, [this]() {advanceFrame = FS_AdvanceFrame::FORWARD;});
-	runOnceIfKeyPressed(GLFW_KEY_LEFT, [this]() {advanceFrame = FS_AdvanceFrame::BACKWARD;});
 }
 
 void FestiApp::setSceneToCurrentKeyFrame(
 	std::vector<uint32_t>& MssboOffsets, 
 	std::unique_ptr<FestiBuffer>& MssboBuffer) {
-	if ((((engineFrameIdx % sceneClockFrequency == 0) && (sceneClockFrequency != 64)) || sceneFrameIdx == -1) 
-		/*|| advanceFrame == FS_AdvanceFrame::FORWARD || advanceFrame == FS_AdvanceFrame::BACKWARD*/) {
-			bool result = runOnceIfKeyPressed(GLFW_KEY_LEFT, []() {});
-			std::cout << runOnceIfKeyPressed(GLFW_KEY_LEFT, []() {});
-		if (result) {
-			std::cout << 20;
+	if (((engineFrameIdx % sceneClockFrequency == 0) && (sceneClockFrequency != 64)) || sceneFrameIdx == -1) {
+		if (runOnceIfKeyPressed(GLFW_KEY_LEFT, []() {})) {
 			sceneFrameIdx--; 
 			if (sceneFrameIdx < 0) {sceneFrameIdx = SCENE_LENGTH - 1;}
 		} else if (runOnceIfKeyPressed(GLFW_KEY_RIGHT, []() {}) || isRunning) {
-
 			sceneFrameIdx++; 
 			if (sceneFrameIdx == SCENE_LENGTH) {sceneFrameIdx = 0;}
 		}
-		//  {
-		// // 	sceneFrameIdx--; 
-		// // 	if (sceneFrameIdx < 0) {sceneFrameIdx = SCENE_LENGTH - 1;}
-		// // 	advanceFrame = FS_AdvanceFrame::UNSPECIFIED;
-
-		// 	sceneFrameIdx++;
-		// 	if (sceneFrameIdx == SCENE_LENGTH) {sceneFrameIdx = 0;}
-		// 	// advanceFrame = FS_AdvanceFrame::UNSPECIFIED;
-		// }
 		for (size_t i = 0; i < gameObjects.size(); i++) {
 			setObjectToCurrentKeyFrame(gameObjects[i], MssboOffsets[i], MssboBuffer);
 		}
@@ -640,6 +624,7 @@ bool FestiApp::runOnceIfKeyPressed(int key, std::function<void()> onPress) {
 	if (glfwGetKey(festiWindow.getGLFWwindow(), key) == GLFW_PRESS) {
 		if (keyWasPressed == false) {
 			onPress();
+			// std::cout << 1;
 			keyWasPressed = true;
 			return true; 
 		}
