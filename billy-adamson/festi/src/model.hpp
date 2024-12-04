@@ -175,7 +175,7 @@ public:
             Transform minStrutOffset{};
             glm::vec2 strutsPerColumnRange{};
             float jengaFactor = 0.f;
-            float seed = .0f;
+            uint32_t seed = .0f;
         } building;
 
         uint32_t layers = 1;

@@ -133,12 +133,12 @@ void FestiApp::run() {
 	// tvs scott
 	// camera.transform.translation = {5.f, 1.f, 0.f};
 	// camera.transform.rotation.y = -glm::pi<float>() / 2;
+	// camera.setPerspectiveProjection(glm::radians(40.f), festiRenderer.getAspectRatio(), .1f, 1000.f);
 
 	// buildings
-	camera.transform.rotation = {-.3f, glm::pi<float>() / 4, 0.f};
-    camera.transform.translation = {0.f, 7.f, 0.f};
-
-	camera.setPerspectiveProjection(glm::radians(40.f), festiRenderer.getAspectRatio(), .1f, 1000.f);
+	// camera.transform.rotation = {-.3f, glm::pi<float>() / 4, 0.f};
+    // camera.transform.translation = {0.f, 7.f, 0.f};
+	camera.setPerspectiveProjection(glm::radians(25.f), festiRenderer.getAspectRatio(), .1f, 1000.f);
 
 	auto lastFrameTime = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<float> frameDuration{1.0f / MAX_FPS};
@@ -488,13 +488,6 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 	// 	cube->transform.translation.y += 0.01f;
 	// 	// cube->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
 
-	// 	// gameObjects[idOf["cube"]]->transform.rotation += glm::vec3(0.1f, 0.1f, 0.f);
-	// 	// gameObjects[idOf["cube"]]->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
-
-	// 	// gameObjects[idOf["kida"]]->transform.rotation += glm::vec3(0.005f, 0.0f, 0.f);
-	// 	// gameObjects[idOf["kida"]]->transform.scale += glm::vec3(.01f, .01f, .01f);
-	// 	// gameObjects[idOf["kida"]]->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
-
 	// 	// float lol = (float)f / 255.f ;
 	// 	// scene->world->colour = glm::vec4(lol, lol * 2, 238.f / 255.f, lol);
 	// 	// scene->insertKeyframe(f, FS_KEYFRAME_WORLD);
@@ -511,12 +504,12 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 	const std::string mtlPath = "models/BUILDINGS";
 	const std::string matPath = "materials/BUILDINGS";
 
-	scene->world->mainLightColour = {255.f / 255.f, 255.f / 255.f, 255.f / 255.f, .5f};
+	scene->world->mainLightColour = {255.f / 255.f, 255.f / 255.f, 255.f / 255.f, .4f};
 	scene->world->ambientColour = {1.f, 1.f, 1.f, .1f};
-	scene->world->mainLightDirection = {.6f, 1.f};
+	scene->world->mainLightDirection = {.6f, 1.4f};
 	scene->world->clipDist = {-30.f, 50.f};	
-	scene->world->cameraPosition = {0.f, 7.f, 0.f};
-	scene->world->cameraRotation = {-.4f, glm::pi<float>() / 4, 0.f};
+	scene->world->cameraPosition = {-23.f, 11.f, -23.f};
+	scene->world->cameraRotation = {-.5f, glm::pi<float>() / 4, 0.f};
 	scene->insertKeyframe(0, FS_KEYFRAME_WORLD);
 
 	auto mask = FestiModel::createModelFromFile(
@@ -531,15 +524,22 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 	mask1->transform.scale = {.3f, .1f, .6f};
 	mask1->transform.translation.x += 20.f;
 	mask1->transform.rotation.y += glm::pi<float>() / 2;
-	mask1->visibility = true;
+	mask1->visibility = false;
 	mask1->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE | FS_KEYFRAME_VISIBILITY);
 
 	auto floor = FestiModel::createModelFromFile(
 		festiDevice, festiMaterials, gameObjects, objPath + "base.obj", mtlPath, matPath);
 	floor->transform.scale = {1.f, 2.f, .3f};
-	floor->transform.translation.y -= .5f;
+	floor->transform.translation.y += 2.4f;
 	floor->transform.translation.z += 2.4f;
 	floor->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
+
+	auto floor1 = FestiModel::createModelFromFile(
+		festiDevice, festiMaterials, gameObjects, objPath + "base.obj", mtlPath, matPath);
+	floor1->transform.scale = floor->transform.scale;
+	floor1->transform.translation.y += floor->transform.translation.y;
+	floor1->transform.translation.x += 2.4f;
+	floor1->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
 
 	auto strut = FestiModel::createModelFromFile(
 		festiDevice, festiMaterials, gameObjects, objPath + "cube.obj", mtlPath, matPath);
@@ -548,15 +548,8 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 
 	auto strut1 = FestiModel::createModelFromFile(
 		festiDevice, festiMaterials, gameObjects, objPath + "cube.obj", mtlPath, matPath);
-	strut1->transform.scale = {.5, 1.f, 3};
+	strut1->transform = strut->transform;
 	strut1->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
-
-	auto floor1 = FestiModel::createModelFromFile(
-		festiDevice, festiMaterials, gameObjects, objPath + "base.obj", mtlPath, matPath);
-	floor1->transform.scale = {1.f, 2.f, .3f};
-	floor1->transform.translation.y -= .5f;
-	floor1->transform.translation.x += 2.4f;
-	floor1->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
 
 	FestiModel::AsInstanceData floorInst;
 	floorInst.parentObject = mask;
@@ -564,39 +557,60 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 	floorInst.layerSeparation = 5;
 	floorInst.building.columnDensity = 1;
 
-	floor->asInstanceData = floorInst;
-	floor->insertKeyframe(0, FS_KEYFRAME_AS_INSTANCE);
-	floor1->asInstanceData = floorInst;
-	floor1->asInstanceData.parentObject = mask1;
-	floor1->insertKeyframe(0, FS_KEYFRAME_AS_INSTANCE);
-
-	FestiModel::AsInstanceData strutInst;
-	strutInst.parentObject = mask;
-	strutInst.layers = 10;
-	strutInst.layerSeparation = 5;
+	FestiModel::AsInstanceData strutInst = floorInst;
 	strutInst.building.columnDensity = 30;
 	strutInst.building.strutsPerColumnRange = {4, 4};
 	strutInst.building.maxStrutOffset.scale = {3.f, 5.f, 5.9f};
 	strutInst.building.minStrutOffset.scale = {3.f, 5.f, 5.9f};
-	strutInst.building.minStrutOffset.translation = {0, 0, -1.f};
-	strutInst.building.maxStrutOffset.translation = {0, 0, -1.f};
+	strutInst.building.minStrutOffset.translation = {0, 0, -.6f};
+	strutInst.building.maxStrutOffset.translation = {0, 0, -.6f};
 	strutInst.building.minColumnOffset.scale = {1.f, 5.f, 5.9f};
 	strutInst.building.maxColumnOffset.scale = {1.f, 5.f, 5.9f};
 	strutInst.building.alignToEdgeIdx = 1;
 
-	strut->asInstanceData = strutInst;
-	strut->insertKeyframe(0, FS_KEYFRAME_AS_INSTANCE);
-	strut1->asInstanceData = strutInst;
-	strut1->asInstanceData.parentObject = mask1;
-	strut1->insertKeyframe(0, FS_KEYFRAME_AS_INSTANCE);
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<float> dis(0., 1.);
 
-	const float height = mask->transform.translation.y;
 	for (size_t f = 0; f < SCENE_LENGTH; ++f) {
-		
-		mask->transform.translation.y = height + (glm::min(f, f+2) % 40) * .125f;
-		mask1->transform.translation.y = height + (f % 40) * .125f;
-		mask->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
-		mask1->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
+	
+		if (f % 3 == 0) {
+			scene->world->cameraPosition.y += .27f;
+			scene->world->cameraRotation.x += .009f;
+			scene->insertKeyframe(f, FS_KEYFRAME_WORLD);
+		}
+
+		strutInst.layerSeparation += 0.001f;
+		strutInst.building.jengaFactor = 1 - glm::abs((int)f - 150) / 150.f;
+		strutInst.building.columnDensity = 10 + glm::abs((int)f - 150) / 6;
+		strutInst.building.maxColumnOffset.translation.x = .8;
+		strutInst.building.strutsPerColumnRange[0] = 4 - glm::abs((int)f - 150) / 150.f * 4;
+		strutInst.building.maxStrutOffset.scale.x = (1 - glm::abs((int)f - 150) / 150.f) * 15;
+
+		floorInst.layerSeparation += 0.001f;
+		floorInst.building.maxColumnOffset.rotation.y = 0.05f;
+		floorInst.building.minColumnOffset.rotation.y = -0.05f;
+		floorInst.building.seed = dis(gen) * 100;
+
+		std::array<FS_Model, 4> buildingObjs = {strut, strut1, floor, floor1};
+		for (uint32_t j = 0; j < strut->getNumberOfFaces(); ++j) {
+			for (const auto& obj : buildingObjs) {
+				obj->faceData[j].contrast = .8f + dis(gen) * 0.65f;
+				obj->faceData[j].uvOffset = {dis(gen), dis(gen)};
+			}
+		}
+
+		strut->asInstanceData = strutInst;
+		strut->insertKeyframe(f, FS_KEYFRAME_AS_INSTANCE | FS_KEYFRAME_FACE_MATERIALS, strut->ALL_FACES());
+		strut1->asInstanceData = strutInst;
+		strut1->asInstanceData.parentObject = mask1;
+		strut1->insertKeyframe(f, FS_KEYFRAME_AS_INSTANCE | FS_KEYFRAME_FACE_MATERIALS, strut1->ALL_FACES());
+
+		floor->asInstanceData = floorInst;
+		floor->insertKeyframe(f, FS_KEYFRAME_AS_INSTANCE| FS_KEYFRAME_FACE_MATERIALS, floor->ALL_FACES());
+		floor1->asInstanceData = floorInst;
+		floor1->asInstanceData.parentObject = mask1;
+		floor1->insertKeyframe(f, FS_KEYFRAME_AS_INSTANCE| FS_KEYFRAME_FACE_MATERIALS, floor1->ALL_FACES());
 	}
 }
 

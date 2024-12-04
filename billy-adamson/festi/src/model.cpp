@@ -423,6 +423,10 @@ std::vector<VkVertexInputBindingDescription> Vertex::getBindingDescriptions() {
 std::vector<Instance> FestiModel::getTransformsToPointsOnSurface(const AsInstanceData& keyframe, Transform& childTransform) {
 	std::vector<Instance> instanceMatrices;
 
+	auto genRnd = std::mt19937(keyframe.random.seed);
+	auto genBldng = std::mt19937(keyframe.building.seed);
+	std::uniform_real_distribution<float> dis(0.0, 1.0);
+
 	Transform& parentTransform = transform;
 	const glm::mat4& parentModelMatrix = parentTransform.getModelMatrix();
 	const glm::vec3 up = glm::normalize(parentTransform.getNormalMatrix() * glm::vec4(keyframe.parentObject->facing, 1.f));
@@ -430,9 +434,9 @@ std::vector<Instance> FestiModel::getTransformsToPointsOnSurface(const AsInstanc
 	for (size_t layer = 0; layer < keyframe.layers; ++layer) {
 		for (size_t i = 0; i < indices.size(); i += 3) {
 			// Define random generators
-			auto genRnd = std::mt19937(keyframe.random.seed);
-			auto genBldng = std::mt19937(keyframe.building.seed);
-			std::uniform_real_distribution<float> dis(0.0, 1.0);
+			// auto genRnd = std::mt19937(keyframe.random.seed);
+			// auto genBldng = std::mt19937(keyframe.building.seed);
+			// std::uniform_real_distribution<float> dis(0.0, 1.0);
 
 			// Grab verts and create normals and other constants
 			glm::vec3 v0 = parentModelMatrix * glm::vec4(vertices[indices[i	   ]].position, 1.f);
@@ -472,13 +476,6 @@ std::vector<Instance> FestiModel::getTransformsToPointsOnSurface(const AsInstanc
 			if (keyframe.building.columnDensity != 0) {
 				// Add building Instances
 				addBuildingInstances(instanceMatrices, keyframe, v0, v1, v2, baseTransform, up, genBldng);
-			}
-			else {
-				// baseTransform.randomOffset(keyframe.base.minOffset, keyframe.base.maxOffset, baseTransform.getModelMatrix(), genRnd);
-				// baseTransform.translation += h;
-				// // std::cout << baseTransform.translation[1];
-				// instanceMatrices.push_back(Instance{baseTransform.getModelMatrix(), baseTransform.getNormalMatrix()});
-				// break;
 			}
 		}
 	}
