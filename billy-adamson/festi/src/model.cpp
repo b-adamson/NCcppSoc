@@ -352,7 +352,7 @@ void FestiModel::insertKeyframe(uint32_t frame, KeyFrameFlags flags, std::vector
     if (flags & FS_KEYFRAME_FACE_MATERIALS) {
         int numberOfFaces = getNumberOfFaces();
         if (!hasVertexBuffer) throw std::runtime_error("Cannot keyframe material data on object with no materials");
-        if (std::any_of(faceIDs.begin(), faceIDs.end(), [numberOfFaces](int x) { return x >= numberOfFaces; })) {
+        if (std::any_of(faceIDs.begin(), faceIDs.end(), [numberOfFaces](int x) {return x >= numberOfFaces;})) {
             throw std::runtime_error("Cannot keyframe on a faceID that does not exist");
         }
         for (auto& id : faceIDs) {

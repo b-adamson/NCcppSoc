@@ -42,6 +42,7 @@ private:
 		uint32_t MssboOffset, 
 		std::unique_ptr<FestiBuffer>& MssboBuffer);
 	bool runOnceIfKeyPressed(int key, std::function<void()> onPress);
+	void checkUserInput();
 
 	uint32_t sceneClockFrequency = 1;
 	bool isRunning = false;
