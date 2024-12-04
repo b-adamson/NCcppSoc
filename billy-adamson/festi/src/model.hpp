@@ -107,6 +107,8 @@ public:
         glm::vec2 mainLightDirection = {.0f, .0f};
         glm::vec4 ambientColour = {.1f, .1f, .1f, 1.f};
         glm::vec2 clipDist = {-10.f, 20.f};
+        glm::vec3 cameraPosition = {.0f, .0f, .0f};
+        glm::vec3 cameraRotation = {.0f, .0f, .0f};
 
         glm::vec3 getDirectionVector();
 
@@ -114,7 +116,9 @@ public:
             return mainLightColour == other.mainLightColour && 
                 mainLightDirection == other.mainLightDirection && 
                 ambientColour == other.ambientColour &&
-                clipDist == other.clipDist;
+                clipDist == other.clipDist &&
+                cameraPosition == other.cameraPosition &&
+                cameraRotation == other.cameraRotation;
             }
 
         bool operator!=(const WorldProperties& other) {

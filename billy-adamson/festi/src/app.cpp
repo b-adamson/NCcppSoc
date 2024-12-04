@@ -129,11 +129,15 @@ void FestiApp::run() {
 	// Create objects for camera and shadow pass
 	FestiCamera mainLight{festiWindow};
 	FestiCamera camera{festiWindow};
+
+	// tvs scott
 	// camera.transform.translation = {5.f, 1.f, 0.f};
 	// camera.transform.rotation.y = -glm::pi<float>() / 2;
 
-	camera.transform.rotation.y = 0;
-    camera.transform.translation = {5.f, 1.f, 0.f};
+	// buildings
+	camera.transform.rotation = {-.3f, glm::pi<float>() / 4, 0.f};
+    camera.transform.translation = {0.f, 7.f, 0.f};
+
 	camera.setPerspectiveProjection(glm::radians(40.f), festiRenderer.getAspectRatio(), .1f, 1000.f);
 
 	auto lastFrameTime = std::chrono::high_resolution_clock::now();
@@ -160,7 +164,6 @@ void FestiApp::run() {
 		// Check for key presses and adjust viewerObject in world space
 		camera.updateCameraFromKeyPresses(dt.count());
 
-
 		if (auto commandBuffer = festiRenderer.beginFrame()) {
 			uint32_t frameBufferIndex = festiRenderer.getFrameBufferIdx();
 
@@ -172,6 +175,10 @@ void FestiApp::run() {
 			mainLight.transform.translation = worldObj->world->getDirectionVector() * worldObj->world->clipDist[0];
 			mainLight.transform.rotation = lightDir;
 			mainLight.setOrthographicProjection(-10., 10., -10., 10., .1f, worldObj->world->clipDist[1]);
+
+			// Set camera to keyframed posrot
+			camera.transform.rotation = worldObj->world->cameraRotation;
+    		camera.transform.translation = worldObj->world->cameraPosition;
 
 			// Helper struct to pass information to render systems for per frame information
 			FrameInfo frameInfo {
@@ -498,19 +505,18 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 	// 	}
 	// }
 
-	// // gameObjects[idOf["cube"]]->asInstanceData.makeStandAlone();
-	// // gameObjects[idOf["cube"]]->insertKeyframe(10, FS_KEYFRAME_AS_INSTANCE_DATA);
-
 	//////////////////////////////////
 	// BUILDINGS
 	const std::string objPath = "models/BUILDINGS/";
 	const std::string mtlPath = "models/BUILDINGS";
 	const std::string matPath = "materials/BUILDINGS";
 
-	scene->world->mainLightColour = {255.f / 255.f, 255.f / 255.f, 255.f / 255.f, 1.f};
+	scene->world->mainLightColour = {255.f / 255.f, 255.f / 255.f, 255.f / 255.f, .5f};
 	scene->world->ambientColour = {1.f, 1.f, 1.f, .1f};
-	scene->world->mainLightDirection = {.4f, glm::pi<float>() / 4};
+	scene->world->mainLightDirection = {.6f, 1.f};
 	scene->world->clipDist = {-30.f, 50.f};	
+	scene->world->cameraPosition = {0.f, 7.f, 0.f};
+	scene->world->cameraRotation = {-.4f, glm::pi<float>() / 4, 0.f};
 	scene->insertKeyframe(0, FS_KEYFRAME_WORLD);
 
 	auto mask = FestiModel::createModelFromFile(
@@ -554,7 +560,7 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 
 	FestiModel::AsInstanceData floorInst;
 	floorInst.parentObject = mask;
-	floorInst.layers = 2;
+	floorInst.layers = 10;
 	floorInst.layerSeparation = 5;
 	floorInst.building.columnDensity = 1;
 
@@ -566,7 +572,7 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 
 	FestiModel::AsInstanceData strutInst;
 	strutInst.parentObject = mask;
-	strutInst.layers = 2;
+	strutInst.layers = 10;
 	strutInst.layerSeparation = 5;
 	strutInst.building.columnDensity = 30;
 	strutInst.building.strutsPerColumnRange = {4, 4};
@@ -584,9 +590,13 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 	strut1->asInstanceData.parentObject = mask1;
 	strut1->insertKeyframe(0, FS_KEYFRAME_AS_INSTANCE);
 
+	const float height = mask->transform.translation.y;
 	for (size_t f = 0; f < SCENE_LENGTH; ++f) {
-		mask->transform.translation.z += 0.01f;
-		// mask->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
+		
+		mask->transform.translation.y = height + (glm::min(f, f+2) % 40) * .125f;
+		mask1->transform.translation.y = height + (f % 40) * .125f;
+		mask->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
+		mask1->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
 	}
 }
 
