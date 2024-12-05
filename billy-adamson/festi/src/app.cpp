@@ -10,6 +10,7 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+#include <pybind11/embed.h>
 
 // std
 #include <cassert>
@@ -25,13 +26,10 @@ namespace festi {
 
 void FestiApp::run() {
 	
-
 	// Instantiate world object
 	auto worldObj = std::make_shared<FestiModel>(festiDevice);
 	worldObj->world = std::make_unique<FestiModel::WorldProperties>();
 	FestiModel::addObjectToSceneWithName(worldObj, gameObjects);
-
-		std::cout << 5;
 
 	// Create scene objects and setup
 	setScene(worldObj);

@@ -6,19 +6,24 @@ GLSLC = C:/VulkanSDK/1.3.290.0/Bin/glslc.exe
 # Paths and flags
 LIB_PATH = C:/Users/beada/dev/C++/libraries
 VULKAN_SDK = C:/VulkanSDK/1.3.290.0
+PYTHON_VERSION = python3
+PYTHON_ROOT = C:/Users/beada/AppData/Local/Programs/Python/Python312
 INCLUDE_DIRS =  -Isrc \
 				-I$(VULKAN_SDK)/Include \
 				-I$(LIB_PATH)/glm-master \
 				-I$(LIB_PATH)/glfw-3.4.bin.WIN64/include \
 				-I$(LIB_PATH)/tinyobjloader \
 				-I$(LIB_PATH)/stb-master \
-				# -I$(LIB_PATH)/pybind11-master/include \
-
+				-I$(LIB_PATH)/pybind11-master/include \
+				-I$(PYTHON_ROOT)/Include \
+				$(shell $(PYTHON_VERSION)-config --includes)
 				
 LIB_DIRS =  -L$(VULKAN_SDK)/Lib \
 			-L$(LIB_PATH)/glfw-3.4.bin.WIN64/lib-mingw-w64 \
+			-L$(PYTHON_ROOT)/Libs \
+			$(shell $(PYTHON_VERSION)-config --ldflags)
 
-LIBS = -lvulkan-1 -lglfw3 -luser32 -lgdi32 -lshell32
+LIBS = -lvulkan-1 -lglfw3 -luser32 -lgdi32 -lshell32 -lpython312
 DEFINES = -DDEBUG
 
 # Directories
