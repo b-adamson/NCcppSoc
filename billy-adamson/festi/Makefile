@@ -8,6 +8,7 @@ LIB_PATH = C:/Users/beada/dev/C++/libraries
 VULKAN_SDK = C:/VulkanSDK/1.3.290.0
 PYTHON_VERSION = python3
 PYTHON_ROOT = C:/Users/beada/AppData/Local/Programs/Python/Python312
+VENV_DIR = C:/Users/beada/dev/Projects/festi/billy-adamson/festi/.venv
 INCLUDE_DIRS =  -Isrc \
 				-I$(VULKAN_SDK)/Include \
 				-I$(LIB_PATH)/glm-master \
@@ -15,11 +16,13 @@ INCLUDE_DIRS =  -Isrc \
 				-I$(LIB_PATH)/tinyobjloader \
 				-I$(LIB_PATH)/stb-master \
 				-I$(LIB_PATH)/pybind11-master/include \
+				-I$(VENV_DIR)/Include \
 				-I$(PYTHON_ROOT)/Include \
 				$(shell $(PYTHON_VERSION)-config --includes)
 				
 LIB_DIRS =  -L$(VULKAN_SDK)/Lib \
 			-L$(LIB_PATH)/glfw-3.4.bin.WIN64/lib-mingw-w64 \
+			-L$(VENV_DIR)/Libs/site-packages/pybind11/include \
 			-L$(PYTHON_ROOT)/Libs \
 			$(shell $(PYTHON_VERSION)-config --ldflags)
 
@@ -39,10 +42,10 @@ FRAG_FILES = $(wildcard $(SHADER_DIR)/*.frag)
 SPV_FILES = $(VERT_FILES:$(SHADER_DIR)/%.vert=$(OBJ_DIR)/%.vert.spv) $(FRAG_FILES:$(SHADER_DIR)/%.frag=$(OBJ_DIR)/%.frag.spv)
 
 # Targets
-.PHONY: all clean shaders
+.PHONY: all clean shaders python_module
 
 # Default target
-all: shaders festi.exe
+all: shaders festi.exe python_module
 
 # Ensure OBJ_DIR exists
 $(OBJ_DIR):
@@ -68,6 +71,12 @@ festi.exe: $(OBJ_FILES) $(SPV_FILES)
 	@echo "Linking object files..."
 	@mkdir -p $(OBJ_DIR)
 	@$(CXX) -o $@ $(OBJ_FILES) $(LIB_DIRS) $(LIBS) || (echo "Failed to link $@" && exit 1)
+
+# Build the Python extension module (.pyd file)
+python_module: $(OBJ_FILES)
+	@echo "Creating Python extension module..."
+	@mkdir -p $(OBJ_DIR)
+	@$(CXX) -shared -o $(OBJ_DIR)/festipy.pyd $(OBJ_FILES) $(LIB_DIRS) $(LIBS) -fPIC || (echo "Failed to build Python extension" && exit 1)
 
 # Clean target
 clean:
