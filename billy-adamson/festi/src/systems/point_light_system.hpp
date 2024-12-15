@@ -2,7 +2,7 @@
 
 #include "camera.hpp"
 #include "device.hpp"
-#include "utils.hpp"
+#include "utils/festi-utils.hpp"
 
 // std
 #include <memory>

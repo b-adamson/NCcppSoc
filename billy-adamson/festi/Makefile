@@ -6,27 +6,20 @@ GLSLC = C:/VulkanSDK/1.3.290.0/Bin/glslc.exe
 # Paths and flags
 LIB_PATH = C:/Users/beada/dev/C++/libraries
 VULKAN_SDK = C:/VulkanSDK/1.3.290.0
-PYTHON_VERSION = python3
-PYTHON_ROOT = C:/Users/beada/AppData/Local/Programs/Python/Python312
-VENV_DIR = C:/Users/beada/dev/Projects/festi/billy-adamson/festi/.venv
 INCLUDE_DIRS =  -Isrc \
-				-I$(VULKAN_SDK)/Include \
-				-I$(LIB_PATH)/glm-master \
-				-I$(LIB_PATH)/glfw-3.4.bin.WIN64/include \
-				-I$(LIB_PATH)/tinyobjloader \
-				-I$(LIB_PATH)/stb-master \
-				-I$(LIB_PATH)/pybind11-master/include \
-				-I$(VENV_DIR)/Include \
-				-I$(PYTHON_ROOT)/Include \
-				$(shell $(PYTHON_VERSION)-config --includes)
-				
-LIB_DIRS =  -L$(VULKAN_SDK)/Lib \
-			-L$(LIB_PATH)/glfw-3.4.bin.WIN64/lib-mingw-w64 \
-			-L$(VENV_DIR)/Libs/site-packages/pybind11/include \
-			-L$(PYTHON_ROOT)/Libs \
-			$(shell $(PYTHON_VERSION)-config --ldflags)
+                -I$(VULKAN_SDK)/Include \
+                -I$(LIB_PATH)/glm-master \
+                -I$(LIB_PATH)/glfw-3.4.bin.WIN64/include \
+                -I$(LIB_PATH)/tinyobjloader \
+                -I$(LIB_PATH)/stb-master \
+                -I$(LIB_PATH)/pybind11-master/include \
+                -IC:/msys64/mingw64/include/python3.12
 
-LIBS = -lvulkan-1 -lglfw3 -luser32 -lgdi32 -lshell32 -lpython312
+LIB_DIRS =  -L$(VULKAN_SDK)/Lib \
+            -L$(LIB_PATH)/glfw-3.4.bin.WIN64/lib-mingw-w64 \
+			-LC:/msys64/mingw64/lib
+
+LIBS = -lvulkan-1 -lglfw3 -luser32 -lgdi32 -lshell32 -lpython3.12.dll
 DEFINES = -DDEBUG
 
 # Directories
@@ -73,10 +66,9 @@ festi.exe: $(OBJ_FILES) $(SPV_FILES)
 	@$(CXX) -o $@ $(OBJ_FILES) $(LIB_DIRS) $(LIBS) || (echo "Failed to link $@" && exit 1)
 
 # Build the Python extension module (.pyd file)
-python_module: $(OBJ_FILES)
+python_module: $(OBJ_FILES) | $(OBJ_DIR)
 	@echo "Creating Python extension module..."
-	@mkdir -p $(OBJ_DIR)
-	@$(CXX) -shared -o $(OBJ_DIR)/festipy.pyd $(OBJ_FILES) $(LIB_DIRS) $(LIBS) -fPIC || (echo "Failed to build Python extension" && exit 1)
+	$(CXX) -shared -o $(OBJ_DIR)/festipy.pyd $(OBJ_FILES) $(LIB_DIRS) $(LIBS) || (echo "Failed to build Python extension" && exit 1)
 
 # Clean target
 clean:

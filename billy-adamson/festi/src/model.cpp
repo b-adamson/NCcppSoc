@@ -1,6 +1,6 @@
 #include "model.hpp"
 
-#include "utils.hpp"
+#include "utils/festi-utils.hpp"
 
 // libs
 #define GLM_ENABLE_EXPERIMENTAL

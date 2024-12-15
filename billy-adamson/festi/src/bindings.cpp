@@ -1,5 +1,7 @@
 #include "bindings.hpp"
 
+#include "utils/pybind11_glm.hpp"
+
 namespace festi {
 
 FestiBindings::FestiBindings(FestiDevice& festiDevice, FestiMaterials& festiMaterials, FS_ModelMap& gameObjects)
