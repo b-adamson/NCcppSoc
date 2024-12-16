@@ -1,6 +1,6 @@
 #include "bindings.hpp"
 
-// #include "utils/pybind11_glm.hpp"
+#include "utils/pybind11_glm.hpp"
 
 #include <iostream>
 #include <pybind11/embed.h>

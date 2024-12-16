@@ -7,13 +7,8 @@ matPath = "materials/BUILDINGS"
 
 # model = fs.Model.createModelFromFile(objPath + "mask.obj", mtlPath, matPath)
 
-transform = fs.Transform
+light = fs.Model.createPointLight(1, [1,1,1,1])
 
-# transform.translation = "eeee"
-
-
-lol = fs.Model
-
-# print(lol.translation)
-
-# lol = fs.Model.createPointLight(1, [0,0,0,1])
+transform = fs.Transform()
+lolz = fs.AsInstanceData()
+j = transform.translation

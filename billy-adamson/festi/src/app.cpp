@@ -625,7 +625,7 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 
 	// Add additional DLL dir (this caused issues without for some reason)
 	std::string pythonBinPath = std::string(PYTHONHOME) + "\\bin";
-	if (!SetDllDirectory(pythonBinPath.c_str())) {
+	if (!SetDllDirectory(pythonBinPath.c_str())) { // why does this show error !!!!!! bloody vscode
 		std::cerr << "Failed to find /bin/ in PYTHONHOME. Some python libraries may not import correctly";
 	}
 
