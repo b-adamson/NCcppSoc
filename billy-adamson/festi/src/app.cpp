@@ -21,13 +21,14 @@
 #include <iostream>
 #include <array>
 #include <random>
+#include <cstdlib>
 #include <thread>
 
 namespace py = pybind11;
 namespace festi {
 
 void FestiApp::run() {
-	
+
 	// Instantiate world object
 	auto worldObj = std::make_shared<FestiModel>(festiDevice);
 	worldObj->world = std::make_unique<FestiModel::WorldProperties>();
@@ -615,55 +616,47 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 
 	// binding
 
- 	try {
+	// Add relevant environment variables
+	std::string PYTHONHOME = "C:/msys64/mingw64";
+	std::string PYTHONPATH = "C:/Users/beada/dev/Projects/festi/billy-adamson/festi/.venv/lib/python3.12/site-packages";
 
-		FestiBindings::festiMaterials = &festiMaterials;
-		FestiBindings::gameObjects = &gameObjects;
-		FestiBindings::festiDevice = &festiDevice;
+	if (_putenv(std::string("PYTHONHOME=" + PYTHONHOME).c_str()) != 0) throw std::runtime_error("Failed to set PYTHONHOME environment variable");
+	if (_putenv(std::string("PYTHONPATH=" + PYTHONPATH).c_str()) != 0) throw std::runtime_error("Failed to set PYTHONPATH environment variable");
 
-        // Initialize Python interpreter
-        py::scoped_interpreter guard{};  // This will initialize the Python interpreter
+	// Add additional DLL dir (this caused issues without for some reason)
+	std::string pythonBinPath = std::string(PYTHONHOME) + "\\bin";
+	if (!SetDllDirectory(pythonBinPath.c_str())) {
+		std::cerr << "Failed to find /bin/ in PYTHONHOME. Some python libraries may not import correctly";
+	}
 
-        // Import the 'sys' module to modify sys.path for Python imports
-        py::module sys = py::module::import("sys");
+	FestiBindings::festiMaterials = &festiMaterials;
+	FestiBindings::gameObjects = &gameObjects;
+	FestiBindings::festiDevice = &festiDevice;
 
-        // Assuming 'bin' is where the 'festi' shared library is located
-        std::string bin_dir = "bin";  // Make sure this path is correct
-		std::string script_dir = "src/scripts";
-		std::string venv = "C:/msys64/mingw64/lib/python3.12/site-packages";
-        sys.attr("path").attr("append")(bin_dir);  // Add 'bin' directory to sys.path
-		sys.attr("path").attr("append")(script_dir);
-		sys.attr("path").attr("append")(venv);
+	// Initialize Python interpreter
+	py::scoped_interpreter guard{};
 
-        // Import the 'festi' module (this is the one created by pybind11)
-        try {
-            py::module festi = py::module::import("festi");  // Import the festi module created by pybind11
-        } catch (const py::error_already_set& e) {
-            std::cerr << "Failed to import 'festi' module: " << e.what() << std::endl;
-            throw std::runtime_error(e.what());
-        }
+	// Add relevant system paths for python
+	py::module sys = py::module::import("sys");
+	std::string bin_dir = "bin";
+	std::string script_dir = "src/scripts";
+	std::string venv = "C:/Users/beada/dev/Projects/festi/billy-adamson/festi/.venv/lib/python3.12/site-packages";
+	sys.attr("path").attr("append")(bin_dir); 
+	sys.attr("path").attr("append")(script_dir);
+	sys.attr("path").attr("append")(venv);
 
-        // Now, execute your script
-        std::string script_path = script_dir + "/script.py";
-
-        if (std::filesystem::exists(script_path)) {
-            try {
-                // Import the script and run it
-                py::module script = py::module::import("script");
-            } catch (const py::error_already_set& e) {
-                std::cerr << "Failed to run script: " << script_path << " " << e.what() << std::endl;
-                throw std::runtime_error("Failed to execute script.");
-            }
-        } else {
-            std::cerr << "Script file not found: " << script_path << std::endl;
-            throw std::runtime_error("Script file not found.");
-        }
-
-    } catch (const py::error_already_set& e) {
-        std::cerr << "Caught Python exception: " << e.what() << std::endl;
-    } catch (const std::exception& e) {
-        std::cerr << "Caught exception: " << e.what() << std::endl;
-    }
+	std::string script_path = script_dir + "/" + APP_NAME + ".py";
+	if (std::filesystem::exists(script_path)) {
+		try {
+			// Import the script and run it
+			py::module script = py::module::import("script");
+		} catch (const py::error_already_set& e) {
+			std::cerr << "Failed to run script: " << script_path << " " << e.what() << '\n';
+			throw std::runtime_error("Failed to execute script.");
+		}
+	} else {
+		throw std::runtime_error("Script file not found: " + script_path);
+	}
 }
 	
 void FestiApp::checkInputsForSceneUpdates() {

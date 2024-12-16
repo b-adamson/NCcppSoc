@@ -1,7 +1,9 @@
 # Compiler and tools
-CXX = g++ -g
+CXX = g++ -g 
 CFLAGS := -std=c++17 -Wall -Wextra
 GLSLC = C:/VulkanSDK/1.3.290.0/Bin/glslc.exe
+
+VENV_PYTHON_DIR = "C:/Users/beada/dev/Projects/festi/billy-adamson/festi/.venv/lib/python3.12/site-packages"
 
 # Paths and flags
 LIB_PATH = C:/Users/beada/dev/C++/libraries
@@ -68,7 +70,7 @@ festi.exe: $(OBJ_FILES) $(SPV_FILES)
 # Build the Python extension module (.pyd file)
 python_module: $(OBJ_FILES) | $(OBJ_DIR)
 	@echo "Creating Python extension module..."
-	$(CXX) -shared -o $(OBJ_DIR)/festi.pyd $(OBJ_FILES) $(LIB_DIRS) $(LIBS) || (echo "Failed to build Python extension" && exit 1)
+	$(CXX) -shared -o $(VENV_PYTHON_DIR)/festi.pyd $(OBJ_FILES) $(LIB_DIRS) $(LIBS) || (echo "Failed to build Python extension" && exit 1)
 
 # Clean target
 clean:
@@ -76,4 +78,5 @@ clean:
 	rm -f $(OBJ_DIR)/*.o
 	rm -f festi.exe
 	rm -f $(SHADER_DIR)/*.spv
+	rm -f $(VENV_PYTHON_DIR)/festi.pyd
 	rm -rf $(OBJ_DIR)

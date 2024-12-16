@@ -19,6 +19,7 @@ namespace festi {
 
 class FestiApp {
 public:
+
     FestiApp() = default;
     ~FestiApp() = default;
     FestiApp(const FestiApp &) = delete;
@@ -31,6 +32,8 @@ public:
 	FestiDevice& getDevice() {return festiDevice;}
 	FestiMaterials& getMaterials() {return festiMaterials;}
 	FS_ModelMap& getGameObjects() {return gameObjects;}
+
+	const std::string APP_NAME = "script";
 
 private:
 
