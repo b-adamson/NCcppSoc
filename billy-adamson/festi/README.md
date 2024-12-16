@@ -13,3 +13,7 @@ Need:
 
 Set "INCLUDE_DIRS" to have the right paths (ignore -Isrc)
 Set "LIB_DIRS" so it connects with the glfw lib and the vulkan lib dlls
+Set "PYTHON_PACKAGES_DIR" in app.hpp to the correct dir you want to add python packages to
+Set "VENV_PYTHON_DIR" also to correct absolute path of dir you want to add packages to
+
+config.txt coming Soon™ !!!!

@@ -640,10 +640,10 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 	py::module sys = py::module::import("sys");
 	std::string bin_dir = "bin";
 	std::string script_dir = "src/scripts";
-	std::string venv = "C:/Users/beada/dev/Projects/festi/billy-adamson/festi/.venv/lib/python3.12/site-packages";
+	// std::string venv = ".venv/lib/python3.12/site-packages";
 	sys.attr("path").attr("append")(bin_dir); 
 	sys.attr("path").attr("append")(script_dir);
-	sys.attr("path").attr("append")(venv);
+	sys.attr("path").attr("append")(PYTHON_PACKAGES_DIR);
 
 	std::string script_path = script_dir + "/" + APP_NAME + ".py";
 	if (std::filesystem::exists(script_path)) {

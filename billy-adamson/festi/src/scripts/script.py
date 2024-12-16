@@ -9,11 +9,11 @@ matPath = "materials/BUILDINGS"
 
 transform = fs.Transform
 
-transform.translation = "eeee"
+# transform.translation = "eeee"
 
 
 lol = fs.Model
 
-print(lol.translation)
+# print(lol.translation)
 
 # lol = fs.Model.createPointLight(1, [0,0,0,1])
