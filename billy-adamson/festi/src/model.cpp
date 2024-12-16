@@ -156,6 +156,7 @@ std::shared_ptr<FestiModel> FestiModel::createModelFromFile(
 	gameObject->createIndexBuffer(gameObject->indices);
 	gameObject->faceData.resize(faceData.size());
 	gameObject->faceData = faceData;
+
 	addObjectToSceneWithName(gameObject, gameObjects);
 	return gameObject;
 }

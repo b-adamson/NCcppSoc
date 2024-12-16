@@ -38,8 +38,8 @@ public:
             sizeof(double),             // Size of each element (double)
             py::format_descriptor<double>::format(), // Data type format string
             1,                          // Number of dimensions (1D array)
-            { 2 },                      // Shape of the array (2 elements for vec2)
-            { sizeof(double) }          // Strides (in bytes)
+            {2},                      // Shape of the array (2 elements for vec2)
+            {sizeof(double)}          // Strides (in bytes)
         ));
     }
 };

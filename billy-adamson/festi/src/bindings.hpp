@@ -16,13 +16,12 @@ namespace festi {
 
 class FestiBindings {
 public:
-    FestiBindings(FestiDevice& festiDevice, FestiMaterials& festiMaterials, FS_ModelMap& gameObjects);
+    FestiBindings() {};
     void init(py::module_& m);
 
-private:
-    FestiDevice& festiDevice;     
-    FestiMaterials& festiMaterials;
-    FS_ModelMap& gameObjects;
+    static FestiDevice* festiDevice;
+    static FestiMaterials* festiMaterials;
+    static FS_ModelMap* gameObjects;
 };
 
 } // festi

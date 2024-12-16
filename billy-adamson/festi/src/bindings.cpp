@@ -2,10 +2,10 @@
 
 #include "utils/pybind11_glm.hpp"
 
-namespace festi {
+#include <iostream>
+#include <pybind11/embed.h>
 
-FestiBindings::FestiBindings(FestiDevice& festiDevice, FestiMaterials& festiMaterials, FS_ModelMap& gameObjects)
-    : festiDevice(festiDevice), festiMaterials(festiMaterials), gameObjects(gameObjects) {}
+namespace festi {
 
 void FestiBindings::init(py::module_& m) {
     m.doc() = "Python bindings for festi";
@@ -53,13 +53,16 @@ void FestiBindings::init(py::module_& m) {
         .def("__eq__", &FestiModel::AsInstanceData::operator==)
         .def("__ne__", &FestiModel::AsInstanceData::operator!=);
 
-    py::class_<FestiModel>(m, "FestiModel")
-        .def_static("create_point_light", &FestiModel::createPointLight,
-                    py::arg("device"), py::arg("gameObjects"), py::arg("radius") = 0.1f, py::arg("color") = glm::vec4(1.f),
-                    "Creates a point light")
+    py::class_<FestiModel>(m, "Model")
+        .def_static("createPointLight", 
+            [this](float radius, glm::vec4 color) {
+                return FestiModel::createPointLight(*FestiBindings::festiDevice, *FestiBindings::gameObjects, radius, color);
+            },
+        py::arg("radius"), py::arg("color"),
+        "Creates a point light")
         .def_static("createModelFromFile",
             [this](const std::string& filepath, const std::string& mtlDir, const std::string& imgDir) {
-                return FestiModel::createModelFromFile(festiDevice, festiMaterials, gameObjects, filepath, mtlDir, imgDir);
+                return FestiModel::createModelFromFile(*FestiBindings::festiDevice, *FestiBindings::festiMaterials, *FestiBindings::gameObjects, filepath, mtlDir, imgDir);
             },
             py::arg("filepath"), py::arg("mtlDir"), py::arg("imgDir"),
             "Creates a FestiModel object from a file, automatically using default settings.")
@@ -77,4 +80,13 @@ void FestiBindings::init(py::module_& m) {
         .def("all_faces", &FestiModel::ALL_FACES);
 }
 
+FestiDevice* FestiBindings::festiDevice = nullptr;
+FestiMaterials* FestiBindings::festiMaterials = nullptr;
+FS_ModelMap* FestiBindings::gameObjects = nullptr;
+
 } // namespace festi
+
+PYBIND11_EMBEDDED_MODULE(festi, m) {
+    festi::FestiBindings bindings{};
+    bindings.init(m);
+}

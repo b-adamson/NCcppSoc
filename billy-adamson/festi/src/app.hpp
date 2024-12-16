@@ -63,7 +63,6 @@ private:
 	FestiMaterials festiMaterials{festiDevice};
 
 	FS_ModelMap gameObjects;
-	FestiBindings festiBindings{festiDevice, festiMaterials, gameObjects};
 };
 
 }  // namespace festi

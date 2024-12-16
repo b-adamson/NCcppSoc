@@ -1,5 +1,5 @@
 # Compiler and tools
-CXX = g++
+CXX = g++ -g
 CFLAGS := -std=c++17 -Wall -Wextra
 GLSLC = C:/VulkanSDK/1.3.290.0/Bin/glslc.exe
 
@@ -68,7 +68,7 @@ festi.exe: $(OBJ_FILES) $(SPV_FILES)
 # Build the Python extension module (.pyd file)
 python_module: $(OBJ_FILES) | $(OBJ_DIR)
 	@echo "Creating Python extension module..."
-	$(CXX) -shared -o $(OBJ_DIR)/festipy.pyd $(OBJ_FILES) $(LIB_DIRS) $(LIBS) || (echo "Failed to build Python extension" && exit 1)
+	$(CXX) -shared -o $(OBJ_DIR)/festi.pyd $(OBJ_FILES) $(LIB_DIRS) $(LIBS) || (echo "Failed to build Python extension" && exit 1)
 
 # Clean target
 clean:

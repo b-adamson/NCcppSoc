@@ -159,16 +159,17 @@ FestiDescriptorWriter& FestiDescriptorWriter::writeImageViews(
   	assert(setLayout.bindings.count(binding) == 1 && "Layout does not contain specified binding");
 
 	auto& bindingDescription = setLayout.bindings[binding];
+	if (imageInfo.size() != 0) {
+		VkWriteDescriptorSet write{};
+		write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		write.descriptorType = bindingDescription.descriptorType;
+		write.dstBinding = binding;
+		write.pImageInfo = imageInfo.data();
+		write.descriptorCount = (uint32_t)imageInfo.size();
+		write.dstArrayElement = 0;
 
-	VkWriteDescriptorSet write{};
-	write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	write.descriptorType = bindingDescription.descriptorType;
-	write.dstBinding = binding;
-	write.pImageInfo = imageInfo.data();
-	write.descriptorCount = (uint32_t)imageInfo.size();
-	write.dstArrayElement = 0;
-
-	writes.push_back(write);
+		writes.push_back(write);
+	}
 	return *this;
 }
 

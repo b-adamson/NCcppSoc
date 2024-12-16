@@ -11,6 +11,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 #include <pybind11/embed.h>
+#include <windows.h>
 
 // std
 #include <cassert>
@@ -31,8 +32,6 @@ void FestiApp::run() {
 	auto worldObj = std::make_shared<FestiModel>(festiDevice);
 	worldObj->world = std::make_unique<FestiModel::WorldProperties>();
 	FestiModel::addObjectToSceneWithName(worldObj, gameObjects);
-
-
 
 	// Create scene objects and setup
 	setScene(worldObj);
@@ -500,7 +499,7 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 	// }
 
 	//////////////////////////////////
-	// BUILDINGS
+	// // BUILDINGS
 	// const std::string objPath = "models/BUILDINGS/";
 	// const std::string mtlPath = "models/BUILDINGS";
 	// const std::string matPath = "materials/BUILDINGS";
@@ -616,21 +615,54 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 
 	// binding
 
-	try {
-		py::scoped_interpreter guard{};
+ 	try {
 
-		py::module festipy = py::module("festi");
-		festiBindings.init(festipy);
+		FestiBindings::festiMaterials = &festiMaterials;
+		FestiBindings::gameObjects = &gameObjects;
+		FestiBindings::festiDevice = &festiDevice;
 
-		std::string script_dir = "scripts";
-		std::string script_path = script_dir + "/script.py";
+        // Initialize Python interpreter
+        py::scoped_interpreter guard{};  // This will initialize the Python interpreter
 
-		py::module sys = py::module::import("sys");
+        // Import the 'sys' module to modify sys.path for Python imports
+        py::module sys = py::module::import("sys");
+
+        // Assuming 'bin' is where the 'festi' shared library is located
+        std::string bin_dir = "bin";  // Make sure this path is correct
+		std::string script_dir = "src/scripts";
+		std::string venv = "C:/msys64/mingw64/lib/python3.12/site-packages";
+        sys.attr("path").attr("append")(bin_dir);  // Add 'bin' directory to sys.path
 		sys.attr("path").attr("append")(script_dir);
+		sys.attr("path").attr("append")(venv);
 
-		py::module::import("script");
-	} catch (const py::error_already_set& e) {
-        throw std::runtime_error(e.what());
+        // Import the 'festi' module (this is the one created by pybind11)
+        try {
+            py::module festi = py::module::import("festi");  // Import the festi module created by pybind11
+        } catch (const py::error_already_set& e) {
+            std::cerr << "Failed to import 'festi' module: " << e.what() << std::endl;
+            throw std::runtime_error(e.what());
+        }
+
+        // Now, execute your script
+        std::string script_path = script_dir + "/script.py";
+
+        if (std::filesystem::exists(script_path)) {
+            try {
+                // Import the script and run it
+                py::module script = py::module::import("script");
+            } catch (const py::error_already_set& e) {
+                std::cerr << "Failed to run script: " << script_path << " " << e.what() << std::endl;
+                throw std::runtime_error("Failed to execute script.");
+            }
+        } else {
+            std::cerr << "Script file not found: " << script_path << std::endl;
+            throw std::runtime_error("Script file not found.");
+        }
+
+    } catch (const py::error_already_set& e) {
+        std::cerr << "Caught Python exception: " << e.what() << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "Caught exception: " << e.what() << std::endl;
     }
 }
 	

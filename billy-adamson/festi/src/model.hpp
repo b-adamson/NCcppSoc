@@ -161,11 +161,6 @@ public:
             Transform maxOffset{};            
         } random;
 
-        // struct DefaultInstancesSettings {
-        //     Transform minOffset{};
-        //     Transform maxOffset{};
-        // } base;
-
         struct BuildingInstancesSettings {
             uint32_t alignToEdgeIdx = 0;
             uint32_t columnDensity = 0;
