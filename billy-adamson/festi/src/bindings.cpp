@@ -1,7 +1,5 @@
 #include "bindings.hpp"
-
 #include "utils/pybind11_glm.hpp"
-
 #include <iostream>
 #include <pybind11/embed.h>
 
@@ -22,7 +20,7 @@ void FestiBindings::init(py::module_& m) {
         .def("__eq__", &FestiModel::Transform::operator==)
         .def("__ne__", &FestiModel::Transform::operator!=);
 
-     py::class_<FestiModel::AsInstanceData::RandomInstancesSettings>(m, "RandomInstancesSettings")
+    py::class_<FestiModel::AsInstanceData::RandomInstancesSettings>(m, "RandomInstancesSettings")
         .def(py::init<>())
         .def_readwrite("density", &FestiModel::AsInstanceData::RandomInstancesSettings::density)
         .def_readwrite("seed", &FestiModel::AsInstanceData::RandomInstancesSettings::seed)
@@ -53,38 +51,37 @@ void FestiBindings::init(py::module_& m) {
         .def("__eq__", &FestiModel::AsInstanceData::operator==)
         .def("__ne__", &FestiModel::AsInstanceData::operator!=);
 
-    py::class_<FestiModel>(m, "Model")
+    py::class_<FestiModel, std::shared_ptr<FestiModel>>(m, "Model")
         .def_static("createPointLight", 
             [this](float radius, glm::vec4 color) {
-                return FestiModel::createPointLight(*FestiBindings::festiDevice, *FestiBindings::gameObjects, radius, color);
+                return FestiModel::createPointLight(*festiDevice, *gameObjects, radius, color);
             },
-        py::arg("radius"), py::arg("color"),
-        "Creates a point light")
+            py::return_value_policy::reference,
+            py::arg("radius"), py::arg("color"))
         .def_static("createModelFromFile",
             [this](const std::string& filepath, const std::string& mtlDir, const std::string& imgDir) {
-                return FestiModel::createModelFromFile(*FestiBindings::festiDevice, *FestiBindings::festiMaterials, *FestiBindings::gameObjects, filepath, mtlDir, imgDir);
+                return FestiModel::createModelFromFile(*festiDevice, *festiMaterials, *gameObjects, filepath, mtlDir, imgDir);
             },
-            py::arg("filepath"), py::arg("mtlDir"), py::arg("imgDir"),
-            "Creates a FestiModel object from a file, automatically using default settings.")
+            py::return_value_policy::reference,
+            py::arg("filepath"), py::arg("mtlDir"), py::arg("imgDir"))
         .def("insert_keyframe", &FestiModel::insertKeyframe,
-             py::arg("idx"), py::arg("flags"), py::arg("faceIDs") = std::vector<uint32_t>{0},
-             "Insert a keyframe at the specified index")
+             py::arg("idx"), py::arg("flags"), py::arg("faceIDs") = std::vector<uint32_t>{0})
         .def_readwrite("transform", &FestiModel::transform)
-        .def_readwrite("as_instance_data", &FestiModel::asInstanceData)
-        .def_readwrite("face_data", &FestiModel::faceData)
+        .def_readwrite("asInstanceData", &FestiModel::asInstanceData)
+        .def_readwrite("faceData", &FestiModel::faceData)
         .def_readwrite("visibility", &FestiModel::visibility)
-        .def("get_id", &FestiModel::getId)
-        .def("get_material", &FestiModel::getMaterial)
-        .def("get_number_of_faces", &FestiModel::getNumberOfFaces)
-        .def("get_shape_area", &FestiModel::getShapeArea)
-        .def("all_faces", &FestiModel::ALL_FACES);
+        .def("getId", &FestiModel::getId)
+        .def("getMaterial", &FestiModel::getMaterial)
+        .def("getNumberOfFaces", &FestiModel::getNumberOfFaces)
+        .def("getShapeArea", &FestiModel::getShapeArea)
+        .def("allFaces", &FestiModel::ALL_FACES);
 }
 
 FestiDevice* FestiBindings::festiDevice = nullptr;
 FestiMaterials* FestiBindings::festiMaterials = nullptr;
 FS_ModelMap* FestiBindings::gameObjects = nullptr;
 
-} // namespace festi
+} 
 
 PYBIND11_EMBEDDED_MODULE(festi, m) {
     festi::FestiBindings bindings{};

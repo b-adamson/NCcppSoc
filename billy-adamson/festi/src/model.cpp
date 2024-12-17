@@ -49,6 +49,8 @@ FestiModel::~FestiModel() {}
 std::shared_ptr<FestiModel> FestiModel::createPointLight(FestiDevice& device, FS_ModelMap& gameObjects,
 	float radius, glm::vec4 color) {
 
+	std::cout << color[1];
+
 	auto gameObject = std::make_shared<FestiModel>(device);
 
 	gameObject->transform.scale.x = radius;
