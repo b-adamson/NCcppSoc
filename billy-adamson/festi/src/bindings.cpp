@@ -1,5 +1,4 @@
 #include "bindings.hpp"
-#include "utils/pybind11_glm.hpp"
 #include <iostream>
 #include <pybind11/embed.h>
 
@@ -15,9 +14,9 @@ void FestiBindings::init(py::module_& m) {
         .def_readwrite("translation", &FestiModel::Transform::translation)
         .def_readwrite("scale", &FestiModel::Transform::scale)
         .def_readwrite("rotation", &FestiModel::Transform::rotation)
-        .def("get_model_matrix", &FestiModel::Transform::getModelMatrix)
-        .def("get_normal_matrix", &FestiModel::Transform::getNormalMatrix)
-        .def("random_offset", &FestiModel::Transform::randomOffset,
+        .def("getModelMatrix", &FestiModel::Transform::getModelMatrix)
+        .def("getNormalMatrix", &FestiModel::Transform::getNormalMatrix)
+        .def("randomOffset", &FestiModel::Transform::randomOffset,
              py::arg("minOff"), py::arg("maxOff"), py::arg("basis"), py::arg("gen"))
         .def("__eq__", &FestiModel::Transform::operator==)
         .def("__ne__", &FestiModel::Transform::operator!=);

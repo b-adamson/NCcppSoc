@@ -1,4 +1,4 @@
-#include "festi-utils.hpp"
+#include "utils.hpp"
 
 // libs
 #define STB_IMAGE_IMPLEMENTATION
