@@ -8,6 +8,8 @@ namespace festi {
 void FestiBindings::init(py::module_& m) {
     m.doc() = "Python bindings for festi";
 
+    // m.add_object("scene", py::cast(**scene));
+
     py::class_<FestiModel::Transform>(m, "Transform")
         .def(py::init<>())
         .def_readwrite("translation", &FestiModel::Transform::translation)
