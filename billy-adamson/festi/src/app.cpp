@@ -651,7 +651,7 @@ void FestiApp::setScene(std::shared_ptr<FestiWorld> scene) {
 	if (std::filesystem::exists(script_path)) {
 		try {
 			// Import the script and run it
-			py::module script = py::module::import("script");
+			py::module script = py::module::import(APP_NAME.c_str());
 		} catch (const py::error_already_set& e) {
 			std::cerr << "Failed to run script: " << script_path << " " << e.what() << '\n';
 			throw std::runtime_error("Failed to execute script.");
