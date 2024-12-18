@@ -81,14 +81,14 @@ void PointLightSystem::createPipeline(VkRenderPass renderPass) {
 
 void PointLightSystem::writePointLightsToUBO(FrameInfo& frameInfo, GlobalUBO& ubo) {
 	uint32_t lightIndex = 0;
-	for (auto& kv : frameInfo.gameObjects) {
+	for (auto& kv : frameInfo.pointLights) {
 		auto& obj = kv.second;
-		if (obj->pointLight == nullptr || !obj->visibility) continue;
+		if (!obj->visibility) continue;
 		assert(lightIndex < FS_MAX_LIGHTS && "Point lights exceed maximum specified");
 
 		// copy light to ubo
 		ubo.pointLights[lightIndex].position = glm::vec4(obj->transform.translation, 1.f);
-		ubo.pointLights[lightIndex].color = glm::vec4(obj->pointLight->color);
+		ubo.pointLights[lightIndex].color = glm::vec4(obj->point.color);
 
 		lightIndex += 1;
 	}
@@ -99,9 +99,9 @@ void PointLightSystem::renderPointLights(FrameInfo& frameInfo) {
 	// Sort lights
 	std::map<float, unsigned int> sorted;
 	auto camPosition = glm::vec3(frameInfo.camera.getInverseView()[3]);
-	for (auto& kv : frameInfo.gameObjects) {
+	for (auto& kv : frameInfo.pointLights) {
 		auto& obj = kv.second;
-		if (obj->pointLight == nullptr || !obj->visibility) continue;
+		if (/*obj->pointLight == nullptr || */!obj->visibility) continue;
 
 		// Calculate distance
 		auto offset = camPosition - obj->transform.translation;
@@ -124,12 +124,12 @@ void PointLightSystem::renderPointLights(FrameInfo& frameInfo) {
 	// iterate through sorted lights in reverse order
 	for (auto it = sorted.rbegin(); it != sorted.rend(); ++it) {
 		// use game obj id to find light object
-		auto& obj = frameInfo.gameObjects.at(it->second);
+		auto& obj = frameInfo.pointLights.at(it->second);
 		if (!obj->visibility) continue;
 
 		PointLightPushConstants push{};
 		push.position = glm::vec4(obj->transform.translation, 1.f);
-		push.colour = glm::vec4(obj->pointLight->color);
+		push.colour = glm::vec4(obj->point.color);
 		push.radius = obj->transform.scale.x;
 
 		vkCmdPushConstants(

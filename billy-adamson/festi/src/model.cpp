@@ -44,19 +44,28 @@ FestiModel::FestiModel(FestiDevice& device) : festiDevice{device} {
 	id = currentID++;
 }
 
-FestiModel::~FestiModel() {}
+FestiPointLight::FestiPointLight() {
+	static uint32_t currentID = 0;
+	id = currentID++;
+}
 
-std::shared_ptr<FestiModel> FestiModel::createPointLight(FestiDevice& device, FS_ModelMap& gameObjects,
+FestiWorld::FestiWorld() {
+	insertKeyframe(0, FS_KEYFRAME_WORLD);
+}
+
+std::shared_ptr<FestiPointLight> FestiPointLight::createPointLight(FS_PointLightMap& pointLights,
 	float radius, glm::vec4 color) {
 
 	std::cout << color[1];
 
-	auto gameObject = std::make_shared<FestiModel>(device);
+	auto gameObject = std::make_shared<FestiPointLight>();
 
 	gameObject->transform.scale.x = radius;
-	gameObject->pointLight = std::make_unique<PointLightComponent>();
-	gameObject->pointLight->color = color;
-	addObjectToSceneWithName(gameObject, gameObjects);
+	gameObject->point.color = color;
+
+	gameObject->insertKeyframe(0, FS_KEYFRAME_POINT_LIGHT | FS_KEYFRAME_VISIBILITY | FS_KEYFRAME_POS_ROT_SCALE);
+
+	pointLights.emplace(gameObject->getId(), gameObject);
 
 	return gameObject;
 }
@@ -159,7 +168,8 @@ std::shared_ptr<FestiModel> FestiModel::createModelFromFile(
 	gameObject->faceData.resize(faceData.size());
 	gameObject->faceData = faceData;
 
-	addObjectToSceneWithName(gameObject, gameObjects);
+	gameObject->insertKeyframe(0, FS_KEYFRAME_FACE_MATERIALS | FS_KEYFRAME_AS_INSTANCE | FS_KEYFRAME_VISIBILITY | FS_KEYFRAME_POS_ROT_SCALE);
+	gameObjects.emplace(gameObject->getId(), gameObject);
 	return gameObject;
 }
 
@@ -276,7 +286,7 @@ void FestiModel::bind(VkCommandBuffer commandBuffer) {
 	}
 }
 
-glm::mat4 FestiModel::Transform::getModelMatrix() {
+glm::mat4 Transform::getModelMatrix() {
 	const float c3 = glm::cos(rotation.z);
 	const float s3 = glm::sin(rotation.z);
 	const float c2 = glm::cos(rotation.x);
@@ -307,7 +317,7 @@ glm::mat4 FestiModel::Transform::getModelMatrix() {
 		}};
 }
 
-glm::mat4 FestiModel::Transform::getNormalMatrix() {
+glm::mat4 Transform::getNormalMatrix() {
 	const glm::vec3 invScale = 1.0f / scale;
 	const float c3 = glm::cos(rotation.z);
 	const float s3 = glm::sin(rotation.z);
@@ -338,7 +348,7 @@ glm::mat4 FestiModel::Transform::getNormalMatrix() {
 	};	
 }
 
-glm::vec3 FestiModel::WorldProperties::getDirectionVector() {
+glm::vec3 FestiWorld::WorldProperties::getDirectionVector() {
 	return glm::normalize(glm::vec3(
 		glm::cos(mainLightDirection.x) * glm::sin(mainLightDirection.y),
 		-glm::sin(mainLightDirection.x),
@@ -347,7 +357,7 @@ glm::vec3 FestiModel::WorldProperties::getDirectionVector() {
 
 void FestiModel::insertKeyframe(uint32_t frame, KeyFrameFlags flags, std::vector<uint32_t> faceIDs) {
     if (flags & FS_KEYFRAME_POS_ROT_SCALE) {
-		if (world != nullptr) throw std::runtime_error("Cannot change PosRotScale of the scene");
+		// if (world != nullptr) throw std::runtime_error("Cannot change PosRotScale of the scene");
         keyframes.transforms[frame] = transform;
         keyframes.inMotion.insert(frame);
     }
@@ -364,10 +374,10 @@ void FestiModel::insertKeyframe(uint32_t frame, KeyFrameFlags flags, std::vector
         }
     }
 
-    if (flags & FS_KEYFRAME_POINT_LIGHT) {
-        if (!pointLight) throw std::runtime_error("Cannot keyframe point-light data for non point-light");
-        keyframes.pointLightData[frame] = *pointLight;
-    }
+    // if (flags & FS_KEYFRAME_POINT_LIGHT) {
+    //     if (!pointLight) throw std::runtime_error("Cannot keyframe point-light data for non point-light");
+    //     keyframes.pointLightData[frame] = *pointLight;
+    // }
 
     if (flags & FS_KEYFRAME_AS_INSTANCE) {
 		if (!hasVertexBuffer) throw std::runtime_error("Cannot keyframe models that don't have vertices");
@@ -376,27 +386,47 @@ void FestiModel::insertKeyframe(uint32_t frame, KeyFrameFlags flags, std::vector
         keyframes.asInstanceData[frame] = asInstanceData;
     }
 
-    if (flags & FS_KEYFRAME_WORLD) {
-        if (!world) throw std::runtime_error("Cannot keyframe scene data on a local object");
-        keyframes.worldProperties[frame] = *world;
-    }
+    // if (flags & FS_KEYFRAME_WORLD) {
+    //     if (!world) throw std::runtime_error("Cannot keyframe scene data on a local object");
+    //     keyframes.worldProperties[frame] = *world;
+    // }
 
 	if (flags & FS_KEYFRAME_VISIBILITY) {
-		if (world != nullptr) throw std::runtime_error("Cannot change visibility of the scene");
+		// if (world != nullptr) throw std::runtime_error("Cannot change visibility of the scene");
 		keyframes.visibility[frame] = visibility;
 	}
 }
 
-void FestiModel::addObjectToSceneWithName(FS_Model& object, FS_ModelMap& gameObjects) {
-	if (object->pointLight) {
-		object->insertKeyframe(0, FS_KEYFRAME_POINT_LIGHT | FS_KEYFRAME_VISIBILITY | FS_KEYFRAME_POS_ROT_SCALE);
-	} else if (object->world) {
-		object->insertKeyframe(0, FS_KEYFRAME_WORLD);
-	} else {
-		object->insertKeyframe(0, FS_KEYFRAME_FACE_MATERIALS | FS_KEYFRAME_AS_INSTANCE | FS_KEYFRAME_VISIBILITY | FS_KEYFRAME_POS_ROT_SCALE);
+void FestiPointLight::insertKeyframe(uint32_t frame, KeyFrameFlags flags) {
+  	if (flags & FS_KEYFRAME_POS_ROT_SCALE) {
+        keyframes.transforms[frame] = transform;
+    }
+
+    if (flags & FS_KEYFRAME_POINT_LIGHT) {
+        keyframes.pointLightData[frame] = point;
+    }
+
+	if (flags & FS_KEYFRAME_VISIBILITY) {
+		keyframes.visibility[frame] = visibility;
 	}
-	gameObjects.emplace(object->getId(), object);
 }
+
+void FestiWorld::insertKeyframe(uint32_t frame, KeyFrameFlags flags) {
+    if (flags & FS_KEYFRAME_WORLD) {
+        keyframes.worldProperties[frame] = world;
+    }
+}
+
+// void FestiModel::addObjectToSceneWithName(FS_Model& object, FS_ModelMap& gameObjects) {
+// 	if (object->pointLight) {
+// 		object->insertKeyframe(0, FS_KEYFRAME_POINT_LIGHT | FS_KEYFRAME_VISIBILITY | FS_KEYFRAME_POS_ROT_SCALE);
+// 	} else if (object->world) {
+// 		object->insertKeyframe(0, FS_KEYFRAME_WORLD);
+// 	} else {
+// 		object->insertKeyframe(0, FS_KEYFRAME_FACE_MATERIALS | FS_KEYFRAME_AS_INSTANCE | FS_KEYFRAME_VISIBILITY | FS_KEYFRAME_POS_ROT_SCALE);
+// 	}
+// 	gameObjects.emplace(object->getId(), object);
+// }
 
 std::vector<VkVertexInputAttributeDescription> Vertex::getAttributeDescriptions() {
 	std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
@@ -436,11 +466,6 @@ std::vector<Instance> FestiModel::getTransformsToPointsOnSurface(const AsInstanc
 
 	for (size_t layer = 0; layer < keyframe.layers; ++layer) {
 		for (size_t i = 0; i < indices.size(); i += 3) {
-			// Define random generators
-			// auto genRnd = std::mt19937(keyframe.random.seed);
-			// auto genBldng = std::mt19937(keyframe.building.seed);
-			// std::uniform_real_distribution<float> dis(0.0, 1.0);
-
 			// Grab verts and create normals and other constants
 			glm::vec3 v0 = parentModelMatrix * glm::vec4(vertices[indices[i	   ]].position, 1.f);
 			glm::vec3 v1 = parentModelMatrix * glm::vec4(vertices[indices[i + 1]].position, 1.f);
@@ -462,10 +487,10 @@ std::vector<Instance> FestiModel::getTransformsToPointsOnSurface(const AsInstanc
 			Transform baseTransform = childTransform;
 
 			// Move to parent
-			// baseTransform.translation = 
-			// 	glm::normalize(glm::vec3(parentModelMatrix[0])) * baseTransform.translation[0] + 
-			// 	glm::normalize(glm::vec3(parentModelMatrix[1])) * baseTransform.translation[1] +
-			// 	glm::normalize(glm::vec3(parentModelMatrix[2])) * baseTransform.translation[2];
+			baseTransform.translation = 
+				glm::normalize(glm::vec3(parentModelMatrix[0])) * baseTransform.translation[0] + 
+				glm::normalize(glm::vec3(parentModelMatrix[1])) * baseTransform.translation[1] +
+				glm::normalize(glm::vec3(parentModelMatrix[2])) * baseTransform.translation[2];
 			baseTransform.scale *= parentTransform.scale;
 			baseTransform.rotation += parentTransform.rotation;
 
@@ -615,7 +640,7 @@ void FestiModel::addBuildingInstances(
 	}
 }
 
-FestiModel::Transform& FestiModel::Transform::randomOffset(
+Transform& Transform::randomOffset(
 	const Transform& minOff, 
 	const Transform& maxOff, 
 	const glm::mat4& basis,

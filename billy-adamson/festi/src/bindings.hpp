@@ -138,6 +138,7 @@ public:
     static FestiDevice* festiDevice;
     static FestiMaterials* festiMaterials;
     static FS_ModelMap* gameObjects;
+    static FS_PointLightMap* pointLights;
 };
 
-} // festi
+} // namespace festi

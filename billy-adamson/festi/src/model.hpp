@@ -84,70 +84,59 @@ struct Instance {
     }
 };
 
+struct Transform {
+    glm::vec3 translation{};
+    glm::vec3 scale{1.f, 1.f, 1.f};
+    glm::vec3 rotation{};
+
+    glm::mat4 getModelMatrix();
+    glm::mat4 getNormalMatrix();
+
+    Transform& randomOffset(
+        const Transform& minOff, 
+        const Transform& maxOff, 
+        const glm::mat4& basis,
+        std::mt19937& gen
+    );
+
+    bool operator==(const Transform& other) const {
+        return translation == other.translation && scale == other.scale && rotation == other.rotation;
+    }
+
+    bool operator!=(const Transform& other) const {return !(*this == other);}
+
+};
+
 class FestiModel {
 
 template <typename T>
 using FS_KeyframeMap_t = std::map<uint32_t, T>;
 
 public:
-    struct PointLightComponent {
-        glm::vec4 color = {1.f, 1.f, 1.f, 1.f};
+    // struct Transform {
+	// 	glm::vec3 translation{};
+	// 	glm::vec3 scale{1.f, 1.f, 1.f};
+	// 	glm::vec3 rotation{};
 
-        bool operator==(const PointLightComponent& other) {
-            return color == other.color;
-        }
+	// 	glm::mat4 getModelMatrix();
+	// 	glm::mat4 getNormalMatrix();
 
-        bool operator!=(const PointLightComponent& other) {
-            return !(*this == other);
-        }
-    };
+    //     Transform& randomOffset(
+    //         const Transform& minOff, 
+    //         const Transform& maxOff, 
+    //         const glm::mat4& basis,
+	//         std::mt19937& gen
+    //     );
 
-    struct WorldProperties {
-        glm::vec4 mainLightColour = {.0f, .0f, .0f, .0f};
-        glm::vec2 mainLightDirection = {.0f, .0f};
-        glm::vec4 ambientColour = {.1f, .1f, .1f, 1.f};
-        glm::vec2 clipDist = {-10.f, 20.f};
-        glm::vec3 cameraPosition = {.0f, .0f, .0f};
-        glm::vec3 cameraRotation = {.0f, .0f, .0f};
+    //     bool operator==(const Transform& other) const {
+    //         return translation == other.translation && scale == other.scale && rotation == other.rotation;
+    //     }
 
-        glm::vec3 getDirectionVector();
+    //     bool operator!=(const Transform& other) const {return !(*this == other);}
 
-        bool operator==(const WorldProperties& other) {
-            return mainLightColour == other.mainLightColour && 
-                mainLightDirection == other.mainLightDirection && 
-                ambientColour == other.ambientColour &&
-                clipDist == other.clipDist &&
-                cameraPosition == other.cameraPosition &&
-                cameraRotation == other.cameraRotation;
-            }
+    // } transform;
 
-        bool operator!=(const WorldProperties& other) {
-            return !(*this == other);
-        }
-    };
-
-    struct Transform {
-		glm::vec3 translation{};
-		glm::vec3 scale{1.f, 1.f, 1.f};
-		glm::vec3 rotation{};
-
-		glm::mat4 getModelMatrix();
-		glm::mat4 getNormalMatrix();
-
-        Transform& randomOffset(
-            const Transform& minOff, 
-            const Transform& maxOff, 
-            const glm::mat4& basis,
-	        std::mt19937& gen
-        );
-
-        bool operator==(const Transform& other) const {
-            return translation == other.translation && scale == other.scale && rotation == other.rotation;
-        }
-
-        bool operator!=(const Transform& other) const {return !(*this == other);}
-
-    } transform;
+    Transform transform;
 
     struct AsInstanceData {
         std::shared_ptr<FestiModel> parentObject = nullptr;
@@ -195,9 +184,7 @@ public:
         // keyframeable properties
         FS_KeyframeMap_t<Transform> transforms; // FS_KEYFRAME_POS_ROT_SCALE
         FS_KeyframeMap_t<std::map<uint32_t, ObjFaceData>> objFaceData; // FS_KEYFRAME_MATERIAL
-        FS_KeyframeMap_t<PointLightComponent> pointLightData; // FS_KEYFRAME_POINT_LIGHT
         FS_KeyframeMap_t<AsInstanceData> asInstanceData; // FS_KEYFRAME_AS_INSTANCE
-        FS_KeyframeMap_t<WorldProperties> worldProperties; // FS_KEYFRAME_WORLD
         FS_KeyframeMap_t<bool> visibility; // FS_KEYFRAME_VISIBILITY
 
         // helpers
@@ -206,7 +193,7 @@ public:
     } keyframes;
 
     FestiModel(FestiDevice& device);
-    ~FestiModel();
+    ~FestiModel() {};
 
     FestiModel(const FestiModel&) = delete;
     FestiModel &operator=(const FestiModel&) = delete;
@@ -220,12 +207,6 @@ public:
         const std::string& filepath,
         const std::string& mtlDir,
         const std::string& imgDir);
-
-    static std::shared_ptr<FestiModel> createPointLight(FestiDevice& device, FS_ModelMap& gameObjects,
-        float radius = 0.1f, glm::vec4 color = glm::vec4(1.f));
-
-    static void addObjectToSceneWithName(
-        FS_Model& object, FS_ModelMap& gameObjects);
 
     void bind(VkCommandBuffer commandBuffer);
     void draw(VkCommandBuffer commandBuffer);
@@ -246,8 +227,6 @@ public:
     bool visibility = true;
     std::vector<ObjFaceData> faceData;
 
-    std::shared_ptr<PointLightComponent> pointLight = nullptr;
-    std::unique_ptr<WorldProperties> world = nullptr;
     bool hasIndexBuffer = false;
     bool hasVertexBuffer = false;
     
@@ -299,6 +278,99 @@ private:
     static std::unordered_map<std::string, uint32_t> materialNamesMap;
 
     friend class FestiMaterials;
+};
+
+class FestiPointLight {
+
+template <typename T>
+using FS_KeyframeMap_t = std::map<uint32_t, T>;
+
+public:
+    Transform transform;
+    bool visibility = true;
+
+    struct PointLightComponent {
+        glm::vec4 color = {1.f, 1.f, 1.f, 1.f};
+
+        bool operator==(const PointLightComponent& other) {
+            return color == other.color;
+        }
+
+        bool operator!=(const PointLightComponent& other) {
+            return !(*this == other);
+        }
+    } point;
+
+    void insertKeyframe(uint32_t idx, KeyFrameFlags flags);
+
+    static std::shared_ptr<FestiPointLight> createPointLight(FS_PointLightMap& gameObjects,
+        float radius = 0.1f, glm::vec4 color = glm::vec4(1.f));
+
+    struct PointLightKeyframes {
+        // keyframeable properties
+        FS_KeyframeMap_t<Transform> transforms; // FS_KEYFRAME_POS_ROT_SCALE
+        FS_KeyframeMap_t<PointLightComponent> pointLightData; // FS_KEYFRAME_POINT_LIGHT
+        FS_KeyframeMap_t<bool> visibility; // FS_KEYFRAME_VISIBILITY
+    } keyframes;
+
+    uint32_t getId() {return id;}
+
+    FestiPointLight();
+    ~FestiPointLight() {};
+    FestiPointLight(const FestiPointLight&) = delete;
+    FestiPointLight &operator=(const FestiPointLight&) = delete;
+    FestiPointLight(FestiPointLight &&) noexcept = default;
+    FestiPointLight &operator=(FestiPointLight &&) noexcept = default;
+
+private:
+    uint32_t id;
+};
+
+class FestiWorld {
+
+template <typename T>
+using FS_KeyframeMap_t = std::map<uint32_t, T>;
+
+public:
+    Transform transform;
+    bool visibility = true;
+
+    void insertKeyframe(uint32_t frame, KeyFrameFlags flags);
+
+    struct WorldProperties {
+        glm::vec4 mainLightColour = {.0f, .0f, .0f, .0f};
+        glm::vec2 mainLightDirection = {.0f, .0f};
+        glm::vec4 ambientColour = {.1f, .1f, .1f, 1.f};
+        glm::vec2 clipDist = {-10.f, 20.f};
+        glm::vec3 cameraPosition = {.0f, .0f, .0f};
+        glm::vec3 cameraRotation = {.0f, .0f, .0f};
+
+        glm::vec3 getDirectionVector();
+
+        bool operator==(const WorldProperties& other) {
+            return mainLightColour == other.mainLightColour && 
+                mainLightDirection == other.mainLightDirection && 
+                ambientColour == other.ambientColour &&
+                clipDist == other.clipDist &&
+                cameraPosition == other.cameraPosition &&
+                cameraRotation == other.cameraRotation;
+            }
+
+        bool operator!=(const WorldProperties& other) {
+            return !(*this == other);
+        }
+    } world;
+
+    struct WorldKeyFrames {
+        FS_KeyframeMap_t<WorldProperties> worldProperties; // FS_KEYFRAME_WORLD
+    } keyframes;
+
+    FestiWorld();
+    ~FestiWorld() {};
+    FestiWorld(const FestiWorld&) = delete;
+    FestiWorld &operator=(const FestiWorld&) = delete;
+    FestiWorld(FestiWorld &&) noexcept = default;
+    FestiWorld &operator=(FestiWorld &&) noexcept = default;
 };
 
 } // festi namespace

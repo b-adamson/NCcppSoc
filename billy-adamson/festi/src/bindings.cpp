@@ -5,21 +5,28 @@
 namespace festi {
 
 void FestiBindings::init(py::module_& m) {
-    m.doc() = "Python bindings for festi";
+    // m.doc() = "Python bindings for festi";
 
     // m.add_object("scene", py::cast(**scene));
 
-    py::class_<FestiModel::Transform>(m, "Transform")
+    // m.attr("FS_KEYFRAME_POS_ROT_SCALE") = pybind11::int_(1 << 0);
+    // m.attr("FS_KEYFRAME_FACE_MATERIALS") = pybind11::int_(1 << 1);
+    // m.attr("FS_KEYFRAME_POINT_LIGHT") = pybind11::int_(1 << 2);
+    // m.attr("FS_KEYFRAME_AS_INSTANCE") = pybind11::int_(1 << 3);
+    // m.attr("FS_KEYFRAME_WORLD") = pybind11::int_(1 << 4);
+    // m.attr("FS_KEYFRAME_VISIBILITY") = pybind11::int_(1 << 5);
+
+    py::class_<Transform>(m, "Transform")
         .def(py::init<>())
-        .def_readwrite("translation", &FestiModel::Transform::translation)
-        .def_readwrite("scale", &FestiModel::Transform::scale)
-        .def_readwrite("rotation", &FestiModel::Transform::rotation)
-        .def("getModelMatrix", &FestiModel::Transform::getModelMatrix)
-        .def("getNormalMatrix", &FestiModel::Transform::getNormalMatrix)
-        .def("randomOffset", &FestiModel::Transform::randomOffset,
+        .def_readwrite("translation", &Transform::translation)
+        .def_readwrite("scale", &Transform::scale)
+        .def_readwrite("rotation", &Transform::rotation)
+        .def("getModelMatrix", &Transform::getModelMatrix)
+        .def("getNormalMatrix", &Transform::getNormalMatrix)
+        .def("randomOffset", &Transform::randomOffset,
              py::arg("minOff"), py::arg("maxOff"), py::arg("basis"), py::arg("gen"))
-        .def("__eq__", &FestiModel::Transform::operator==)
-        .def("__ne__", &FestiModel::Transform::operator!=);
+        .def("__eq__", &Transform::operator==)
+        .def("__ne__", &Transform::operator!=);
 
     py::class_<FestiModel::AsInstanceData::RandomInstancesSettings>(m, "RandomInstancesSettings")
         .def(py::init<>())
@@ -53,19 +60,19 @@ void FestiBindings::init(py::module_& m) {
         .def("__ne__", &FestiModel::AsInstanceData::operator!=);
 
     py::class_<FestiModel, std::shared_ptr<FestiModel>>(m, "Model")
-        .def_static("createPointLight", 
-            [this](float radius, glm::vec4 color) {
-                return FestiModel::createPointLight(*festiDevice, *gameObjects, radius, color);
-            },
-            py::return_value_policy::reference,
-            py::arg("radius"), py::arg("color"))
+        // .def_static("createPointLight", 
+        //     [this](float radius, glm::vec4 color) {
+        //         return FestiModel::createPointLight(*pointLights, radius, color);
+        //     },
+        //     py::return_value_policy::reference,
+        //     py::arg("radius"), py::arg("color"))
         .def_static("createModelFromFile",
             [this](const std::string& filepath, const std::string& mtlDir, const std::string& imgDir) {
                 return FestiModel::createModelFromFile(*festiDevice, *festiMaterials, *gameObjects, filepath, mtlDir, imgDir);
             },
             py::return_value_policy::reference,
             py::arg("filepath"), py::arg("mtlDir"), py::arg("imgDir"))
-        .def("insert_keyframe", &FestiModel::insertKeyframe,
+        .def("insertKeyframe", &FestiModel::insertKeyframe,
              py::arg("idx"), py::arg("flags"), py::arg("faceIDs") = std::vector<uint32_t>{0})
         .def_readwrite("transform", &FestiModel::transform)
         .def_readwrite("asInstanceData", &FestiModel::asInstanceData)
@@ -76,11 +83,25 @@ void FestiBindings::init(py::module_& m) {
         .def("getNumberOfFaces", &FestiModel::getNumberOfFaces)
         .def("getShapeArea", &FestiModel::getShapeArea)
         .def("allFaces", &FestiModel::ALL_FACES);
+
+    py::class_<FestiPointLight, std::shared_ptr<FestiPointLight>>(m, "PointLight")
+        .def_static("createPointLight", 
+            [this](float radius, glm::vec4 color) {
+                return FestiPointLight::createPointLight(*pointLights, radius, color);
+            },
+            py::return_value_policy::reference,
+            py::arg("radius"), py::arg("color"))
+        .def("insertKeyframe", &FestiPointLight::insertKeyframe,
+             py::arg("idx"), py::arg("flags"))
+        .def_readwrite("visibility", &FestiPointLight::visibility)
+        .def_readwrite("transform", &FestiPointLight::transform)
+        .def("getId", &FestiPointLight::getId);
 }
 
 FestiDevice* FestiBindings::festiDevice = nullptr;
 FestiMaterials* FestiBindings::festiMaterials = nullptr;
 FS_ModelMap* FestiBindings::gameObjects = nullptr;
+FS_PointLightMap* FestiBindings::pointLights = nullptr;
 
 } 
 

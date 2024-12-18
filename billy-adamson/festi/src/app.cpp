@@ -30,9 +30,9 @@ namespace festi {
 void FestiApp::run() {
 
 	// Instantiate world object
-	auto worldObj = std::make_shared<FestiModel>(festiDevice);
-	worldObj->world = std::make_unique<FestiModel::WorldProperties>();
-	FestiModel::addObjectToSceneWithName(worldObj, gameObjects);
+	auto worldObj = std::make_shared<FestiWorld>();
+	// worldObj->world = std::make_unique<FestiModel::WorldProperties>();
+	// FestiModel::addObjectToSceneWithName(worldObj, gameObjects);
 
 	// Create scene objects and setup
 	setScene(worldObj);
@@ -132,14 +132,14 @@ void FestiApp::run() {
 	FestiCamera camera{festiWindow};
 
 	// tvs scott
-	// camera.transform.translation = {5.f, 1.f, 0.f};
-	// camera.transform.rotation.y = -glm::pi<float>() / 2;
-	// camera.setPerspectiveProjection(glm::radians(40.f), festiRenderer.getAspectRatio(), .1f, 1000.f);
+	camera.transform.translation = {5.f, 1.f, 0.f};
+	camera.transform.rotation.y = -glm::pi<float>() / 2;
+	camera.setPerspectiveProjection(glm::radians(40.f), festiRenderer.getAspectRatio(), .1f, 1000.f);
 
 	// buildings
 	// camera.transform.rotation = {-.3f, glm::pi<float>() / 4, 0.f};
     // camera.transform.translation = {0.f, 7.f, 0.f};
-	camera.setPerspectiveProjection(glm::radians(25.f), festiRenderer.getAspectRatio(), .1f, 1000.f);
+	// camera.setPerspectiveProjection(glm::radians(25.f), festiRenderer.getAspectRatio(), .1f, 1000.f);
 
 	auto lastFrameTime = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<float> frameDuration{1.0f / MAX_FPS};
@@ -169,17 +169,17 @@ void FestiApp::run() {
 			uint32_t frameBufferIndex = festiRenderer.getFrameBufferIdx();
 
 			// Set scene to current keyframe
-			setSceneToCurrentKeyFrame(Mssbo.offsets, MssboBuffer);
+			setSceneToCurrentKeyFrame(Mssbo.offsets, MssboBuffer, worldObj);
 			
 			// Set light direction and clipping distance
-			glm::vec3 lightDir = glm::vec3(worldObj->world->mainLightDirection, 0.f);
-			mainLight.transform.translation = worldObj->world->getDirectionVector() * worldObj->world->clipDist[0];
+			glm::vec3 lightDir = glm::vec3(worldObj->world.mainLightDirection, 0.f);
+			mainLight.transform.translation = worldObj->world.getDirectionVector() * worldObj->world.clipDist[0];
 			mainLight.transform.rotation = lightDir;
-			mainLight.setOrthographicProjection(-10., 10., -10., 10., .1f, worldObj->world->clipDist[1]);
+			mainLight.setOrthographicProjection(-10., 10., -10., 10., .1f, worldObj->world.clipDist[1]);
 
 			// Set camera to keyframed posrot
-			camera.transform.rotation = worldObj->world->cameraRotation;
-    		camera.transform.translation = worldObj->world->cameraPosition;
+			// camera.transform.rotation = worldObj->world.cameraRotation;
+    		// camera.transform.translation = worldObj->world.cameraPosition;
 
 			// Helper struct to pass information to render systems for per frame information
 			FrameInfo frameInfo {
@@ -191,12 +191,14 @@ void FestiApp::run() {
 				perFrameDescriptorSets[frameBufferIndex],
 				materialDescriptorSet,
 				shadowMapDescriptorSets[frameBufferIndex],
-				gameObjects};
+				gameObjects,
+				pointLights
+				};
 
 			// Update Gubo based on frame details
 			GlobalUBO Gubo{};
-			Gubo.directionalColour = worldObj->world->mainLightColour;
-			Gubo.ambientLightColor = worldObj->world->ambientColour;
+			Gubo.directionalColour = worldObj->world.mainLightColour;
+			Gubo.ambientLightColor = worldObj->world.ambientColour;
 			Gubo.lightProjection = mainLight.getProjection();
 			Gubo.lightView = mainLight.getView();
 			Gubo.projection = camera.getProjection();
@@ -225,9 +227,9 @@ void FestiApp::run() {
 	vkDeviceWaitIdle(festiDevice.device());
 }
 
-void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
+void FestiApp::setScene(std::shared_ptr<FestiWorld> scene) {
 
-	// WALL SCENE:
+	// // WALL SCENE:
 
 	// const std::string objPath = "models/WALLROTATING/";
 	// const std::string mtlPath = "models/WALLROTATING/";
@@ -290,23 +292,23 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 	// 	{2.9f, 2.6f, -0.8f},
 	// };
 
-	// std::array<FS_Model, 9> flames;
+	// std::array<FS_PointLight, 9> flames;
 	// for (size_t i = 0; i < translations.size(); ++i) {
-	// 	flames[i] = FestiModel::createPointLight(festiDevice, gameObjects, .5f, {1.f, 1.f, 1.f, 1.f});
+	// 	flames[i] = FestiPointLight::createPointLight(pointLights, .5f, {1.f, 1.f, 1.f, 1.f});
 	// 	flames[i]->transform.translation = translations[i];
 	// };
 
 	// for (size_t i = 4; i < 9; ++i) {
-	// 	flames[i] = FestiModel::createPointLight(festiDevice, gameObjects, .5f, {1.f, 1.f, 1.f, 1.f});
+	// 	flames[i] = FestiPointLight::createPointLight(pointLights, .5f, {1.f, 1.f, 1.f, 1.f});
 	// };
 
 	// std::random_device rd;
 	// std::mt19937 gen(rd());
 	// std::uniform_real_distribution<float> dis(0., 1.);
 
-	// scene->world->mainLightColour = {255.f / 255.f, 255.f / 255.f, 255.f / 255.f, 1.f};
-	// scene->world->ambientColour = {1.f, 1.f, 1.f, .01f};
-	// scene->world->mainLightDirection = {.4f, 0.f};
+	// scene->world.mainLightColour = {255.f / 255.f, 255.f / 255.f, 255.f / 255.f, 1.f};
+	// scene->world.ambientColour = {1.f, 1.f, 1.f, .01f};
+	// scene->world.mainLightDirection = {.4f, 0.f};
 	// scene->insertKeyframe(0, FS_KEYFRAME_WORLD);
 
 	// for (uint32_t f = 0; f < (uint32_t)SCENE_LENGTH; f++) {
@@ -412,8 +414,8 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 	// 	streetLight->insertKeyframe(f, FS_KEYFRAME_FACE_MATERIALS, streetLight->ALL_FACES());
 	// }
 
-	//////////////////////////////////////////////////
-	// // TEST SCENE:
+	////////////////////////////////////////////////
+	// TEST SCENE:
 
 	// auto kida = FestiModel::createModelFromFile(
 	// 	festiDevice, festiMaterials, gameObjects, "models/TEST/kida.obj", "models/TEST", "materials/TEST");
@@ -436,12 +438,12 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
     //     {0.5f, 0.0f, 1.0f}  // Purple
     // };
 
-	// std::array<FS_Model, 6> pointLights;
+	// std::array<FS_PointLight, 6> lights;
 
 	// for (size_t i = 0; i < lightColors.size(); i++) {
-	// 	pointLights[i] = FestiModel::createPointLight(festiDevice, gameObjects, .2f, glm::vec4(lightColors[i], .5f));
+	// 	lights[i] = FestiPointLight::createPointLight(pointLights, .2f, glm::vec4(lightColors[i], .5f));
 	// 	auto rotateLight = glm::rotate(glm::mat4(1.f), i * glm::two_pi<float>() / lightColors.size(), {0.f, -1.f, 0.f});
-	// 	pointLights[i]->transform.translation = glm::vec3(rotateLight * glm::vec4(-1.f, .0f, -1.f, 1.f));
+	// 	lights[i]->transform.translation = glm::vec3(rotateLight * glm::vec4(-1.f, .0f, -1.f, 1.f));
 	// }
 
 	// auto rotateLight = glm::rotate(glm::mat4(1.f), glm::pi<float>() / 50, {0.f, -1.f, 0.f});
@@ -494,8 +496,8 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 	// 	// scene->insertKeyframe(f, FS_KEYFRAME_WORLD);
 
 	// 	for (size_t i = 0; i < 6; i++) {
-	// 		pointLights[i]->transform.translation = glm::vec3(rotateLight * glm::vec4(pointLights[i]->transform.translation, 1.f));
-	// 		pointLights[i]->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
+	// 		lights[i]->transform.translation = glm::vec3(rotateLight * glm::vec4(lights[i]->transform.translation, 1.f));
+	// 		lights[i]->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
 	// 	}
 	// }
 
@@ -625,13 +627,14 @@ void FestiApp::setScene(std::shared_ptr<FestiModel> scene) {
 
 	// Add additional DLL dir (this caused issues without for some reason)
 	std::string pythonBinPath = std::string(PYTHONHOME) + "\\bin";
-	if (!SetDllDirectory(pythonBinPath.c_str())) { // why does this show error !!!!!! bloody vscode
+	if (!SetDllDirectoryA(pythonBinPath.c_str())) {
 		std::cerr << "Failed to find /bin/ in PYTHONHOME. Some python libraries may not import correctly";
 	}
 
 	FestiBindings::festiMaterials = &festiMaterials;
 	FestiBindings::gameObjects = &gameObjects;
 	FestiBindings::festiDevice = &festiDevice;
+	FestiBindings::pointLights = &pointLights;
 
 	// Initialize Python interpreter
 	py::scoped_interpreter guard{};
@@ -672,7 +675,9 @@ void FestiApp::checkInputsForSceneUpdates() {
 
 void FestiApp::setSceneToCurrentKeyFrame(
 	std::vector<uint32_t>& MssboOffsets, 
-	std::unique_ptr<FestiBuffer>& MssboBuffer) {
+	std::unique_ptr<FestiBuffer>& MssboBuffer,
+	FS_World world
+	) {
 
 	bool right = runOnceIfKeyPressed(GLFW_KEY_RIGHT, [this]() {});
 	bool left = runOnceIfKeyPressed(GLFW_KEY_LEFT, [this]() {});
@@ -689,6 +694,10 @@ void FestiApp::setSceneToCurrentKeyFrame(
 		for (size_t i = 0; i < gameObjects.size(); i++) {
 			setObjectToCurrentKeyFrame(gameObjects[i], MssboOffsets[i], MssboBuffer);
 		}
+		for (size_t j = 0; j < pointLights.size(); j++) {
+			setPointLightToCurrentKeyFrame(pointLights[j]);
+		}
+		setWorldToCurrentKeyFrame(world);
 	}
 }
 
@@ -709,7 +718,7 @@ bool FestiApp::runOnceIfKeyPressed(int key, std::function<void()> onPress) {
 };
 
 void FestiApp::setObjectToCurrentKeyFrame(
-	std::shared_ptr<FestiModel>& obj, 
+	FS_Model& obj, 
 	uint32_t MssboOffset, 
 	std::unique_ptr<FestiBuffer>& MssboBuffer) {
 
@@ -726,55 +735,91 @@ void FestiApp::setObjectToCurrentKeyFrame(
 	};
 
 	bool hasMoved = false;
-	if (!obj->world) {
-		// FS_KEYFRAME_VISIBILITY
-		auto visibilityKF = getObjectPropertyKeyframe(obj->keyframes.visibility);
-		if (obj->visibility != visibilityKF->second || atEndOrStart) {obj->visibility = visibilityKF->second;}
 
-		// FS_KEYFRAME_POS_ROT_SCALE
-		auto posRotScaleKF = getObjectPropertyKeyframe(obj->keyframes.transforms);
-		hasMoved = obj->transform != posRotScaleKF->second;
-		if (hasMoved || atEndOrStart) {obj->transform = posRotScaleKF->second;}
+	// FS_KEYFRAME_VISIBILITY
+	auto visibilityKF = getObjectPropertyKeyframe(obj->keyframes.visibility);
+	if (obj->visibility != visibilityKF->second || atEndOrStart) {obj->visibility = visibilityKF->second;}
+
+	// FS_KEYFRAME_POS_ROT_SCALE
+	auto posRotScaleKF = getObjectPropertyKeyframe(obj->keyframes.transforms);
+	hasMoved = obj->transform != posRotScaleKF->second;
+	if (hasMoved || atEndOrStart) {obj->transform = posRotScaleKF->second;}
+
+	// FS_KEYFRAME_MATERIAL
+	for (auto& faceID : obj->keyframes.modifiedFaces) {
+		auto materialKF = getObjectPropertyKeyframe(obj->keyframes.objFaceData[faceID]);
+		if ((obj->faceData[faceID] != materialKF->second) || atEndOrStart) {obj->faceData[faceID] = materialKF->second;}
+	};
+	auto data = obj->faceData.data();
+	auto size = obj->faceData.size() * sizeof(ObjFaceData);
+	auto offset = MssboOffset * sizeof(ObjFaceData);
+	MssboBuffer->writeToBuffer(data, size, offset);
+
+	// FS_KEYFRAME_AS_INSTANCE
+	auto asInstKF = getObjectPropertyKeyframe(obj->keyframes.asInstanceData);
+	bool parentHasMoved = false;
+	if (obj->asInstanceData.parentObject) {
+		parentHasMoved = obj->asInstanceData.parentObject->keyframes.inMotion.count(frame);
 	}
+	if ((obj->asInstanceData != asInstKF->second) || hasMoved || parentHasMoved || atEndOrStart) {
+		if (asInstKF->second.parentObject) {
+			obj->writeToInstanceBuffer(
+				asInstKF->second.parentObject->getTransformsToPointsOnSurface(asInstKF->second, obj->transform));
+		} else {
+			obj->writeToInstanceBuffer(
+				std::vector<Instance>(1, {obj->transform.getModelMatrix(), obj->transform.getNormalMatrix()}));
+		}
+	}
+}
 
-	if (obj->pointLight) {
-		// FS_KEYFRAME_POINT_LIGHT
-		auto pointtLightKF = getObjectPropertyKeyframe(obj->keyframes.pointLightData);
-		if (*obj->pointLight != pointtLightKF->second || atEndOrStart) {
-			obj->pointLight = std::make_unique<FestiModel::PointLightComponent>(pointtLightKF->second);
-		}
-	} else if (obj->world) {
-		// FS_KEYFRAME_KEYFRAME_WORLD
-		auto worldKF = getObjectPropertyKeyframe(obj->keyframes.worldProperties);
-		if (*obj->world != worldKF->second || atEndOrStart) {
-			obj->world = std::make_unique<FestiModel::WorldProperties>(worldKF->second);
-		}
-	} else {
-		// FS_KEYFRAME_MATERIAL
-		for (auto& faceID : obj->keyframes.modifiedFaces) {
-			auto materialKF = getObjectPropertyKeyframe(obj->keyframes.objFaceData[faceID]);
-			if ((obj->faceData[faceID] != materialKF->second) || atEndOrStart) {obj->faceData[faceID] = materialKF->second;}
-		};
-		auto data = obj->faceData.data();
-		auto size = obj->faceData.size() * sizeof(ObjFaceData);
-		auto offset = MssboOffset * sizeof(ObjFaceData);
-		MssboBuffer->writeToBuffer(data, size, offset);
+void FestiApp::setPointLightToCurrentKeyFrame(FS_PointLight& obj) {
+	const uint32_t frame = sceneFrameIdx;
+	const bool atEndOrStart = frame == 0 || (int)frame == (SCENE_LENGTH - 1);
 
-		// FS_KEYFRAME_AS_INSTANCE
-		auto asInstKF = getObjectPropertyKeyframe(obj->keyframes.asInstanceData);
-		bool parentHasMoved = false;
-		if (obj->asInstanceData.parentObject) {
-			parentHasMoved = obj->asInstanceData.parentObject->keyframes.inMotion.count(frame);
+	auto getObjectPropertyKeyframe = [frame](auto& propertyKeyframes) {
+		auto it = propertyKeyframes.find(frame);
+		if (it == propertyKeyframes.end()) {
+			it = propertyKeyframes.lower_bound(frame);
+			--it;
 		}
-		if ((obj->asInstanceData != asInstKF->second) || hasMoved || parentHasMoved || atEndOrStart) {
-			if (asInstKF->second.parentObject) {
-				obj->writeToInstanceBuffer(
-					asInstKF->second.parentObject->getTransformsToPointsOnSurface(asInstKF->second, obj->transform));
-			} else {
-				obj->writeToInstanceBuffer(
-					std::vector<Instance>(1, {obj->transform.getModelMatrix(), obj->transform.getNormalMatrix()}));
-			}
+		return it;
+	};
+
+	bool hasMoved = false;
+
+	// FS_KEYFRAME_VISIBILITY
+	auto visibilityKF = getObjectPropertyKeyframe(obj->keyframes.visibility);
+	if (obj->visibility != visibilityKF->second || atEndOrStart) {obj->visibility = visibilityKF->second;}
+
+	// FS_KEYFRAME_POS_ROT_SCALE
+	auto posRotScaleKF = getObjectPropertyKeyframe(obj->keyframes.transforms);
+	hasMoved = obj->transform != posRotScaleKF->second;
+	if (hasMoved || atEndOrStart) {obj->transform = posRotScaleKF->second;}
+
+	// FS_KEYFRAME_POINT_LIGHT
+	auto pointtLightKF = getObjectPropertyKeyframe(obj->keyframes.pointLightData);
+	if (obj->point != pointtLightKF->second || atEndOrStart) {
+		obj->point = pointtLightKF->second;
+	}
+}
+
+void FestiApp::setWorldToCurrentKeyFrame(FS_World& obj) {
+	const uint32_t frame = sceneFrameIdx;
+	const bool atEndOrStart = frame == 0 || (int)frame == (SCENE_LENGTH - 1);
+
+	auto getObjectPropertyKeyframe = [frame](auto& propertyKeyframes) {
+		auto it = propertyKeyframes.find(frame);
+		if (it == propertyKeyframes.end()) {
+			it = propertyKeyframes.lower_bound(frame);
+			--it;
 		}
+		return it;
+	};
+
+	// FS_KEYFRAME_KEYFRAME_WORLD
+	auto worldKF = getObjectPropertyKeyframe(obj->keyframes.worldProperties);
+	if (obj->world != worldKF->second || atEndOrStart) {
+		obj->world = worldKF->second;
 	}
 }
 

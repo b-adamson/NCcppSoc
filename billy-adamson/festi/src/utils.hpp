@@ -50,6 +50,7 @@ struct FrameInfo {
 	VkDescriptorSet materialSet;
 	VkDescriptorSet shadowMapSet;
 	FS_ModelMap& gameObjects;
+	FS_PointLightMap& pointLights;
 };
 
 } // namespace festi

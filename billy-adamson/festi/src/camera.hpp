@@ -9,6 +9,10 @@
 
 namespace festi {
 
+// Primarily used to manage the location of camera, create relevent matrices, and track user input. This is NOT a model object
+// It holds a transform object for helper purposes. FestiWorld is the object that controls the *active* camera object, from which it extracts its
+// information from a FestiCamera instance.
+
 class FestiCamera {
 public:
 
@@ -24,7 +28,7 @@ public:
         float left, float right, float bottom, float top, float near, float far);
     void setPerspectiveProjection(float fovy, float aspect, float near, float far);
 
-	FestiModel::Transform transform;
+	Transform transform;
 
 private:
 

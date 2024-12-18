@@ -41,15 +41,20 @@ private:
 	uint32_t material(std::string name) {return FestiModel::getMaterial(name);}
 	
 	// helpers
-	void setScene(std::shared_ptr<FestiModel> scene);
+	void setScene(std::shared_ptr<FestiWorld> scene);
 	void checkInputsForSceneUpdates();
 	void setSceneToCurrentKeyFrame(
 		std::vector<uint32_t>& MssboOffset, 
-		std::unique_ptr<FestiBuffer>& MssboBuffer);
+		std::unique_ptr<FestiBuffer>& MssboBuffer,
+		FS_World world
+	);
 	void setObjectToCurrentKeyFrame(
-		std::shared_ptr<FestiModel>& obj, 
+		FS_Model& obj, 
 		uint32_t MssboOffset, 
-		std::unique_ptr<FestiBuffer>& MssboBuffer);
+		std::unique_ptr<FestiBuffer>& MssboBuffer
+	);
+	void setPointLightToCurrentKeyFrame(FS_PointLight& obj);
+	void setWorldToCurrentKeyFrame(FS_World& obj);
 	bool runOnceIfKeyPressed(int key, std::function<void()> onPress);
 
 	uint32_t sceneClockFrequency = 1;
@@ -67,6 +72,7 @@ private:
 	FestiMaterials festiMaterials{festiDevice};
 
 	FS_ModelMap gameObjects;
+	FS_PointLightMap pointLights;
 };
 
 }  // namespace festi

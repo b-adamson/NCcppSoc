@@ -26,6 +26,13 @@ using FS_ImageMap = std::unordered_map<std::string, std::pair<uint32_t, VkImageV
 using FS_Model = std::shared_ptr<FestiModel>;
 using FS_ModelMap = std::unordered_map<uint32_t, FS_Model>;
 
+class FestiPointLight;
+using FS_PointLight = std::shared_ptr<FestiPointLight>;
+using FS_PointLightMap = std::unordered_map<uint32_t, FS_PointLight>;
+
+class FestiWorld;
+using FS_World = std::shared_ptr<FestiWorld>;
+
 enum class FS_ImageMapFlags {
     DIFFUSE,
     NORMAL,
