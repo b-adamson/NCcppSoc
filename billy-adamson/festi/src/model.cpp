@@ -55,9 +55,6 @@ FestiWorld::FestiWorld() {
 
 std::shared_ptr<FestiPointLight> FestiPointLight::createPointLight(FS_PointLightMap& pointLights,
 	float radius, glm::vec4 color) {
-
-	std::cout << color[1];
-
 	auto gameObject = std::make_shared<FestiPointLight>();
 
 	gameObject->transform.scale.x = radius;
@@ -357,7 +354,6 @@ glm::vec3 FestiWorld::WorldProperties::getDirectionVector() {
 
 void FestiModel::insertKeyframe(uint32_t frame, KeyFrameFlags flags, std::vector<uint32_t> faceIDs) {
     if (flags & FS_KEYFRAME_POS_ROT_SCALE) {
-		// if (world != nullptr) throw std::runtime_error("Cannot change PosRotScale of the scene");
         keyframes.transforms[frame] = transform;
         keyframes.inMotion.insert(frame);
     }
@@ -374,22 +370,12 @@ void FestiModel::insertKeyframe(uint32_t frame, KeyFrameFlags flags, std::vector
         }
     }
 
-    // if (flags & FS_KEYFRAME_POINT_LIGHT) {
-    //     if (!pointLight) throw std::runtime_error("Cannot keyframe point-light data for non point-light");
-    //     keyframes.pointLightData[frame] = *pointLight;
-    // }
-
     if (flags & FS_KEYFRAME_AS_INSTANCE) {
 		if (!hasVertexBuffer) throw std::runtime_error("Cannot keyframe models that don't have vertices");
 		if (asInstanceData.random.randomness <= 0) throw std::runtime_error("Randomness must be positive");
 		if (asInstanceData.random.solidity <= 0 || asInstanceData.random.solidity > 1) throw std::runtime_error("Solidity must be 0 < s <= 1");
         keyframes.asInstanceData[frame] = asInstanceData;
     }
-
-    // if (flags & FS_KEYFRAME_WORLD) {
-    //     if (!world) throw std::runtime_error("Cannot keyframe scene data on a local object");
-    //     keyframes.worldProperties[frame] = *world;
-    // }
 
 	if (flags & FS_KEYFRAME_VISIBILITY) {
 		// if (world != nullptr) throw std::runtime_error("Cannot change visibility of the scene");
@@ -416,17 +402,6 @@ void FestiWorld::insertKeyframe(uint32_t frame, KeyFrameFlags flags) {
         keyframes.worldProperties[frame] = world;
     }
 }
-
-// void FestiModel::addObjectToSceneWithName(FS_Model& object, FS_ModelMap& gameObjects) {
-// 	if (object->pointLight) {
-// 		object->insertKeyframe(0, FS_KEYFRAME_POINT_LIGHT | FS_KEYFRAME_VISIBILITY | FS_KEYFRAME_POS_ROT_SCALE);
-// 	} else if (object->world) {
-// 		object->insertKeyframe(0, FS_KEYFRAME_WORLD);
-// 	} else {
-// 		object->insertKeyframe(0, FS_KEYFRAME_FACE_MATERIALS | FS_KEYFRAME_AS_INSTANCE | FS_KEYFRAME_VISIBILITY | FS_KEYFRAME_POS_ROT_SCALE);
-// 	}
-// 	gameObjects.emplace(object->getId(), object);
-// }
 
 std::vector<VkVertexInputAttributeDescription> Vertex::getAttributeDescriptions() {
 	std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
@@ -669,6 +644,86 @@ Transform& Transform::randomOffset(
 			(minOff.translation[2] + dis(gen) * (maxOff.translation[2] - minOff.translation[2])) * glm::normalize(basis[2]);
 	}
 	return *this;
+}
+
+template <typename T>
+auto getKeyframeForFrame(uint32_t frame, std::map<uint32_t, T>& propertyKeyframes) {
+    auto it = propertyKeyframes.find(frame);
+    if (it == propertyKeyframes.end()) {
+        it = propertyKeyframes.lower_bound(frame);
+        --it;
+    }
+    return it;
+}
+
+template <typename T>
+bool updatePropertyIfNeeded(T& currentProperty, const T& newProperty, bool condition) {
+    if (currentProperty != newProperty || condition) {
+        currentProperty = newProperty;
+        return true;
+    }
+    return false;
+}
+
+void FestiModel::setObjectToCurrentKeyFrame(uint32_t MssboOffset, std::unique_ptr<FestiBuffer>& MssboBuffer, uint32_t frame) {
+    const bool atEndOrStart = (frame == 0 || static_cast<int>(frame) == SCENE_LENGTH - 1);
+
+    // Update visibility
+    auto visibilityKF = getKeyframeForFrame(frame, keyframes.visibility);
+    updatePropertyIfNeeded(visibility, visibilityKF->second, atEndOrStart);
+
+    // Update transform
+    auto posRotScaleKF = getKeyframeForFrame(frame, keyframes.transforms);
+    bool hasMoved = updatePropertyIfNeeded(transform, posRotScaleKF->second, atEndOrStart);
+
+    // Update face data
+    for (auto& faceID : keyframes.modifiedFaces) {
+        auto materialKF = getKeyframeForFrame(frame, keyframes.objFaceData[faceID]);
+        updatePropertyIfNeeded(faceData[faceID], materialKF->second, atEndOrStart);
+    }
+
+	// std::cout << keyframes.transforms.size();
+
+    // Write to buffer if any face data has changed
+    auto data = faceData.data();
+    auto size = faceData.size() * sizeof(ObjFaceData);
+    auto offset = MssboOffset * sizeof(ObjFaceData);
+    MssboBuffer->writeToBuffer(data, size, offset);
+
+    // Update asInstanceData if needed
+    auto asInstKF = getKeyframeForFrame(frame, keyframes.asInstanceData);
+    bool parentHasMoved = asInstanceData.parentObject ? asInstanceData.parentObject->keyframes.inMotion.count(frame) : false;
+    if (updatePropertyIfNeeded(asInstanceData, asInstKF->second, hasMoved || parentHasMoved || atEndOrStart)) {
+        if (asInstKF->second.parentObject) {
+            writeToInstanceBuffer(asInstKF->second.parentObject->getTransformsToPointsOnSurface(asInstKF->second, transform));
+        } else {
+            writeToInstanceBuffer(std::vector<Instance>(1, {transform.getModelMatrix(), transform.getNormalMatrix()}));
+        }
+    }
+}
+
+void FestiPointLight::setPointLightToCurrentKeyFrame(uint32_t frame) {
+    const bool atEndOrStart = (frame == 0 || static_cast<int>(frame) == SCENE_LENGTH - 1);
+
+    // Update visibility
+    auto visibilityKF = getKeyframeForFrame(frame, keyframes.visibility);
+    updatePropertyIfNeeded(visibility, visibilityKF->second, atEndOrStart);
+
+    // Update transform
+    auto posRotScaleKF = getKeyframeForFrame(frame, keyframes.transforms);
+    updatePropertyIfNeeded(transform, posRotScaleKF->second, atEndOrStart);
+
+    // Update point light data
+    auto pointLightKF = getKeyframeForFrame(frame, keyframes.pointLightData);
+    updatePropertyIfNeeded(point, pointLightKF->second, atEndOrStart);
+}
+
+void FestiWorld::setWorldToCurrentKeyFrame(uint32_t frame) {
+    const bool atEndOrStart = (frame == 0 || static_cast<int>(frame) == SCENE_LENGTH - 1);
+
+    // Update world properties
+    auto worldKF = getKeyframeForFrame(frame, keyframes.worldProperties);
+    updatePropertyIfNeeded(world, worldKF->second, atEndOrStart);
 }
 
 }  // namespace festi

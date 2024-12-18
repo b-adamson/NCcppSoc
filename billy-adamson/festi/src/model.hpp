@@ -113,29 +113,6 @@ template <typename T>
 using FS_KeyframeMap_t = std::map<uint32_t, T>;
 
 public:
-    // struct Transform {
-	// 	glm::vec3 translation{};
-	// 	glm::vec3 scale{1.f, 1.f, 1.f};
-	// 	glm::vec3 rotation{};
-
-	// 	glm::mat4 getModelMatrix();
-	// 	glm::mat4 getNormalMatrix();
-
-    //     Transform& randomOffset(
-    //         const Transform& minOff, 
-    //         const Transform& maxOff, 
-    //         const glm::mat4& basis,
-	//         std::mt19937& gen
-    //     );
-
-    //     bool operator==(const Transform& other) const {
-    //         return translation == other.translation && scale == other.scale && rotation == other.rotation;
-    //     }
-
-    //     bool operator!=(const Transform& other) const {return !(*this == other);}
-
-    // } transform;
-
     Transform transform;
 
     struct AsInstanceData {
@@ -207,6 +184,12 @@ public:
         const std::string& filepath,
         const std::string& mtlDir,
         const std::string& imgDir);
+    
+    void setObjectToCurrentKeyFrame(
+        uint32_t MssboOffset, 
+        std::unique_ptr<FestiBuffer>& MssboBuffer,
+        const uint32_t frame
+    );
 
     void bind(VkCommandBuffer commandBuffer);
     void draw(VkCommandBuffer commandBuffer);
@@ -305,6 +288,8 @@ public:
 
     static std::shared_ptr<FestiPointLight> createPointLight(FS_PointLightMap& gameObjects,
         float radius = 0.1f, glm::vec4 color = glm::vec4(1.f));
+    
+    void setPointLightToCurrentKeyFrame(const uint32_t frame);
 
     struct PointLightKeyframes {
         // keyframeable properties
@@ -336,6 +321,8 @@ public:
     bool visibility = true;
 
     void insertKeyframe(uint32_t frame, KeyFrameFlags flags);
+
+    void setWorldToCurrentKeyFrame(const uint32_t frame);
 
     struct WorldProperties {
         glm::vec4 mainLightColour = {.0f, .0f, .0f, .0f};

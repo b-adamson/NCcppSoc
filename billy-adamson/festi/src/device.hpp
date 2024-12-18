@@ -16,6 +16,8 @@ constexpr uint32_t FS_UNSPECIFIED = UINT32_MAX;
 constexpr uint32_t FS_MAXIMUM_IMAGE_DESCRIPTORS = 500;
 constexpr uint32_t FS_MAX_LIGHTS = 30;
 constexpr uint32_t FS_MAX_FRAMES_IN_FLIGHT = 2;
+constexpr uint32_t MAX_FPS = 120;
+constexpr int SCENE_LENGTH = 300;
 
 struct SwapChainSupportDetails {
     VkSurfaceCapabilitiesKHR capabilities;

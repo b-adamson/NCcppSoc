@@ -7,6 +7,10 @@ matPath = "materials/BUILDINGS"
 
 model = fs.Model.createModelFromFile(objPath + "mask.obj", mtlPath, matPath)
 
-for j in range(0, 100):
-    model.transform.rotation[2] += 0.01
-    # model.insertKeyframe(j, fs.FS_KEYFRAME_POS_ROT_SCALE)
+light = fs.PointLight.createPointLight(4, [.2,.2,1,1])
+
+for f in range(0, 300):
+    model.transform.rotation += [0, 0, 0.01]
+    model.insertKeyframe(f, fs.KEYFRAME.POS_ROT_SCALE)
+
+    print(model.transform.rotation)

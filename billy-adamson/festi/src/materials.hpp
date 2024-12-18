@@ -83,7 +83,7 @@ public:
     FestiMaterials(FestiMaterials &&) noexcept = delete;
     FestiMaterials &operator=(FestiMaterials &&) noexcept = delete;
 
-    MaterialsSSBO& getMssbo() { return Mssbo; }
+    MaterialsSSBO& getMssbo() {return Mssbo;}
 
     VkImageView createImageViewFromFile(
         const std::string& filePath, 

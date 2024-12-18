@@ -29,10 +29,6 @@ public:
 
     void run();
 
-	FestiDevice& getDevice() {return festiDevice;}
-	FestiMaterials& getMaterials() {return festiMaterials;}
-	FS_ModelMap& getGameObjects() {return gameObjects;}
-
 	const std::string APP_NAME = "script";
 	const std::string PYTHON_PACKAGES_DIR = ".venv/lib/python3.12/site-packages";
 
@@ -48,20 +44,10 @@ private:
 		std::unique_ptr<FestiBuffer>& MssboBuffer,
 		FS_World world
 	);
-	void setObjectToCurrentKeyFrame(
-		FS_Model& obj, 
-		uint32_t MssboOffset, 
-		std::unique_ptr<FestiBuffer>& MssboBuffer
-	);
-	void setPointLightToCurrentKeyFrame(FS_PointLight& obj);
-	void setWorldToCurrentKeyFrame(FS_World& obj);
 	bool runOnceIfKeyPressed(int key, std::function<void()> onPress);
 
 	uint32_t sceneClockFrequency = 1;
 	bool isRunning = false;
-
-	const uint32_t MAX_FPS = 120;
-	const int SCENE_LENGTH = 300;
 
 	size_t engineFrameIdx = 0;
 	int sceneFrameIdx = -1;

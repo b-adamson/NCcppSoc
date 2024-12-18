@@ -9,12 +9,14 @@ void FestiBindings::init(py::module_& m) {
 
     // m.add_object("scene", py::cast(**scene));
 
-    // m.attr("FS_KEYFRAME_POS_ROT_SCALE") = pybind11::int_(1 << 0);
-    // m.attr("FS_KEYFRAME_FACE_MATERIALS") = pybind11::int_(1 << 1);
-    // m.attr("FS_KEYFRAME_POINT_LIGHT") = pybind11::int_(1 << 2);
-    // m.attr("FS_KEYFRAME_AS_INSTANCE") = pybind11::int_(1 << 3);
-    // m.attr("FS_KEYFRAME_WORLD") = pybind11::int_(1 << 4);
-    // m.attr("FS_KEYFRAME_VISIBILITY") = pybind11::int_(1 << 5);
+    py::enum_<KeyFrameFlags>(m, "KEYFRAME")
+        .value("POS_ROT_SCALE", FS_KEYFRAME_POS_ROT_SCALE)
+        .value("FACE_MATERIALS", FS_KEYFRAME_FACE_MATERIALS)
+        .value("POINT_LIGHT", FS_KEYFRAME_POINT_LIGHT)
+        .value("AS_INSTANCE", FS_KEYFRAME_AS_INSTANCE)
+        .value("WORLD", FS_KEYFRAME_WORLD)
+        .value("VISIBILITY", FS_KEYFRAME_VISIBILITY)
+        .export_values();
 
     py::class_<Transform>(m, "Transform")
         .def(py::init<>())
@@ -60,12 +62,6 @@ void FestiBindings::init(py::module_& m) {
         .def("__ne__", &FestiModel::AsInstanceData::operator!=);
 
     py::class_<FestiModel, std::shared_ptr<FestiModel>>(m, "Model")
-        // .def_static("createPointLight", 
-        //     [this](float radius, glm::vec4 color) {
-        //         return FestiModel::createPointLight(*pointLights, radius, color);
-        //     },
-        //     py::return_value_policy::reference,
-        //     py::arg("radius"), py::arg("color"))
         .def_static("createModelFromFile",
             [this](const std::string& filepath, const std::string& mtlDir, const std::string& imgDir) {
                 return FestiModel::createModelFromFile(*festiDevice, *festiMaterials, *gameObjects, filepath, mtlDir, imgDir);
@@ -103,7 +99,7 @@ FestiMaterials* FestiBindings::festiMaterials = nullptr;
 FS_ModelMap* FestiBindings::gameObjects = nullptr;
 FS_PointLightMap* FestiBindings::pointLights = nullptr;
 
-} 
+} // festi
 
 PYBIND11_EMBEDDED_MODULE(festi, m) {
     festi::FestiBindings bindings{};

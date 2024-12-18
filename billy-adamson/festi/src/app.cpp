@@ -229,7 +229,7 @@ void FestiApp::run() {
 
 void FestiApp::setScene(std::shared_ptr<FestiWorld> scene) {
 
-	// // WALL SCENE:
+	// WALL SCENE:
 
 	// const std::string objPath = "models/WALLROTATING/";
 	// const std::string mtlPath = "models/WALLROTATING/";
@@ -691,13 +691,14 @@ void FestiApp::setSceneToCurrentKeyFrame(
 			sceneFrameIdx++;
 			if (sceneFrameIdx == SCENE_LENGTH) {sceneFrameIdx = 0;}
 		}
+
 		for (size_t i = 0; i < gameObjects.size(); i++) {
-			setObjectToCurrentKeyFrame(gameObjects[i], MssboOffsets[i], MssboBuffer);
+			gameObjects[i]->setObjectToCurrentKeyFrame(MssboOffsets[i], MssboBuffer, sceneFrameIdx);
 		}
 		for (size_t j = 0; j < pointLights.size(); j++) {
-			setPointLightToCurrentKeyFrame(pointLights[j]);
+			pointLights[j]->setPointLightToCurrentKeyFrame(sceneFrameIdx);
 		}
-		setWorldToCurrentKeyFrame(world);
+		world->setWorldToCurrentKeyFrame(sceneFrameIdx);
 	}
 }
 
@@ -716,111 +717,5 @@ bool FestiApp::runOnceIfKeyPressed(int key, std::function<void()> onPress) {
 	}
 	return false;
 };
-
-void FestiApp::setObjectToCurrentKeyFrame(
-	FS_Model& obj, 
-	uint32_t MssboOffset, 
-	std::unique_ptr<FestiBuffer>& MssboBuffer) {
-
-	const uint32_t frame = sceneFrameIdx;
-	const bool atEndOrStart = frame == 0 || (int)frame == (SCENE_LENGTH - 1);
-
-	auto getObjectPropertyKeyframe = [frame](auto& propertyKeyframes) {
-		auto it = propertyKeyframes.find(frame);
-		if (it == propertyKeyframes.end()) {
-			it = propertyKeyframes.lower_bound(frame);
-			--it;
-		}
-		return it;
-	};
-
-	bool hasMoved = false;
-
-	// FS_KEYFRAME_VISIBILITY
-	auto visibilityKF = getObjectPropertyKeyframe(obj->keyframes.visibility);
-	if (obj->visibility != visibilityKF->second || atEndOrStart) {obj->visibility = visibilityKF->second;}
-
-	// FS_KEYFRAME_POS_ROT_SCALE
-	auto posRotScaleKF = getObjectPropertyKeyframe(obj->keyframes.transforms);
-	hasMoved = obj->transform != posRotScaleKF->second;
-	if (hasMoved || atEndOrStart) {obj->transform = posRotScaleKF->second;}
-
-	// FS_KEYFRAME_MATERIAL
-	for (auto& faceID : obj->keyframes.modifiedFaces) {
-		auto materialKF = getObjectPropertyKeyframe(obj->keyframes.objFaceData[faceID]);
-		if ((obj->faceData[faceID] != materialKF->second) || atEndOrStart) {obj->faceData[faceID] = materialKF->second;}
-	};
-	auto data = obj->faceData.data();
-	auto size = obj->faceData.size() * sizeof(ObjFaceData);
-	auto offset = MssboOffset * sizeof(ObjFaceData);
-	MssboBuffer->writeToBuffer(data, size, offset);
-
-	// FS_KEYFRAME_AS_INSTANCE
-	auto asInstKF = getObjectPropertyKeyframe(obj->keyframes.asInstanceData);
-	bool parentHasMoved = false;
-	if (obj->asInstanceData.parentObject) {
-		parentHasMoved = obj->asInstanceData.parentObject->keyframes.inMotion.count(frame);
-	}
-	if ((obj->asInstanceData != asInstKF->second) || hasMoved || parentHasMoved || atEndOrStart) {
-		if (asInstKF->second.parentObject) {
-			obj->writeToInstanceBuffer(
-				asInstKF->second.parentObject->getTransformsToPointsOnSurface(asInstKF->second, obj->transform));
-		} else {
-			obj->writeToInstanceBuffer(
-				std::vector<Instance>(1, {obj->transform.getModelMatrix(), obj->transform.getNormalMatrix()}));
-		}
-	}
-}
-
-void FestiApp::setPointLightToCurrentKeyFrame(FS_PointLight& obj) {
-	const uint32_t frame = sceneFrameIdx;
-	const bool atEndOrStart = frame == 0 || (int)frame == (SCENE_LENGTH - 1);
-
-	auto getObjectPropertyKeyframe = [frame](auto& propertyKeyframes) {
-		auto it = propertyKeyframes.find(frame);
-		if (it == propertyKeyframes.end()) {
-			it = propertyKeyframes.lower_bound(frame);
-			--it;
-		}
-		return it;
-	};
-
-	bool hasMoved = false;
-
-	// FS_KEYFRAME_VISIBILITY
-	auto visibilityKF = getObjectPropertyKeyframe(obj->keyframes.visibility);
-	if (obj->visibility != visibilityKF->second || atEndOrStart) {obj->visibility = visibilityKF->second;}
-
-	// FS_KEYFRAME_POS_ROT_SCALE
-	auto posRotScaleKF = getObjectPropertyKeyframe(obj->keyframes.transforms);
-	hasMoved = obj->transform != posRotScaleKF->second;
-	if (hasMoved || atEndOrStart) {obj->transform = posRotScaleKF->second;}
-
-	// FS_KEYFRAME_POINT_LIGHT
-	auto pointtLightKF = getObjectPropertyKeyframe(obj->keyframes.pointLightData);
-	if (obj->point != pointtLightKF->second || atEndOrStart) {
-		obj->point = pointtLightKF->second;
-	}
-}
-
-void FestiApp::setWorldToCurrentKeyFrame(FS_World& obj) {
-	const uint32_t frame = sceneFrameIdx;
-	const bool atEndOrStart = frame == 0 || (int)frame == (SCENE_LENGTH - 1);
-
-	auto getObjectPropertyKeyframe = [frame](auto& propertyKeyframes) {
-		auto it = propertyKeyframes.find(frame);
-		if (it == propertyKeyframes.end()) {
-			it = propertyKeyframes.lower_bound(frame);
-			--it;
-		}
-		return it;
-	};
-
-	// FS_KEYFRAME_KEYFRAME_WORLD
-	auto worldKF = getObjectPropertyKeyframe(obj->keyframes.worldProperties);
-	if (obj->world != worldKF->second || atEndOrStart) {
-		obj->world = worldKF->second;
-	}
-}
 
 }  // namespace festi

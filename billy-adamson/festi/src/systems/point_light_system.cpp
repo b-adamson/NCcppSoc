@@ -101,7 +101,7 @@ void PointLightSystem::renderPointLights(FrameInfo& frameInfo) {
 	auto camPosition = glm::vec3(frameInfo.camera.getInverseView()[3]);
 	for (auto& kv : frameInfo.pointLights) {
 		auto& obj = kv.second;
-		if (/*obj->pointLight == nullptr || */!obj->visibility) continue;
+		if (!obj->visibility) continue;
 
 		// Calculate distance
 		auto offset = camPosition - obj->transform.translation;
