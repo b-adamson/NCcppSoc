@@ -1,15 +1,15 @@
 #include "bindings.hpp"
+
 #include <iostream>
 #include <pybind11/embed.h>
+#include <pybind11/stl.h>
 
 namespace festi {
 
 void FestiBindings::init(py::module_& m) {
-    // m.doc() = "Python bindings for festi";
+    m.doc() = "Python bindings for festi";
 
-    // m.add_object("scene", py::cast(**scene));
-
-    py::enum_<KeyFrameFlags>(m, "KEYFRAME")
+    py::enum_<KeyFrameFlags>(m, "KEYFRAME", py::arithmetic())
         .value("POS_ROT_SCALE", FS_KEYFRAME_POS_ROT_SCALE)
         .value("FACE_MATERIALS", FS_KEYFRAME_FACE_MATERIALS)
         .value("POINT_LIGHT", FS_KEYFRAME_POINT_LIGHT)
@@ -61,6 +61,25 @@ void FestiBindings::init(py::module_& m) {
         .def("__eq__", &FestiModel::AsInstanceData::operator==)
         .def("__ne__", &FestiModel::AsInstanceData::operator!=);
 
+    py::class_<Material>(m, "Material")
+        .def(py::init<>())
+        .def_readwrite("diffuseColor", &Material::diffuseColor)
+        .def_readwrite("specularColor", &Material::specularColor)
+        .def_readwrite("shininess", &Material::shininess)
+        .def_readwrite("diffuseTextureIndex", &Material::diffuseTextureIndex)
+        .def_readwrite("specularTextureIndex", &Material::specularTextureIndex)
+        .def_readwrite("normalTextureIndex", &Material::normalTextureIndex);
+
+    py::bind_vector<std::vector<ObjFaceData>>(m, "ObjFaceDataVector");
+    py::class_<ObjFaceData>(m, "ObjFaceData")
+        .def(py::init<>())
+        .def_readwrite("materialID", &ObjFaceData::materialID)
+        .def_readwrite("saturation", &ObjFaceData::saturation)
+        .def_readwrite("contrast", &ObjFaceData::contrast)
+        .def_readwrite("uvOffset", &ObjFaceData::uvOffset)
+        .def("__eq__", &ObjFaceData::operator==)
+        .def("__ne__", &ObjFaceData::operator!=);
+
     py::class_<FestiModel, std::shared_ptr<FestiModel>>(m, "Model")
         .def_static("createModelFromFile",
             [this](const std::string& filepath, const std::string& mtlDir, const std::string& imgDir) {
@@ -78,7 +97,11 @@ void FestiBindings::init(py::module_& m) {
         .def("getMaterial", &FestiModel::getMaterial)
         .def("getNumberOfFaces", &FestiModel::getNumberOfFaces)
         .def("getShapeArea", &FestiModel::getShapeArea)
-        .def("allFaces", &FestiModel::ALL_FACES);
+        .def("allFaces", &FestiModel::ALL_FACES)
+        .def("setFaces",
+            &FestiModel::setFaces,
+            py::arg("data"), py::arg("faces") = std::vector<uint32_t>{FS_UNSPECIFIED});
+        
 
     py::class_<FestiPointLight, std::shared_ptr<FestiPointLight>>(m, "PointLight")
         .def_static("createPointLight", 
@@ -92,12 +115,29 @@ void FestiBindings::init(py::module_& m) {
         .def_readwrite("visibility", &FestiPointLight::visibility)
         .def_readwrite("transform", &FestiPointLight::transform)
         .def("getId", &FestiPointLight::getId);
+
+    // Bind the WorldProperties struct
+    py::class_<FestiWorld::WorldProperties>(m, "WorldProperties")
+        .def_readwrite("mainLightColour", &FestiWorld::WorldProperties::mainLightColour)
+        .def_readwrite("mainLightDirection", &FestiWorld::WorldProperties::mainLightDirection)
+        .def_readwrite("ambientColour", &FestiWorld::WorldProperties::ambientColour)
+        .def_readwrite("clipDist", &FestiWorld::WorldProperties::clipDist)
+        .def_readwrite("cameraPosition", &FestiWorld::WorldProperties::cameraPosition)
+        .def_readwrite("cameraRotation", &FestiWorld::WorldProperties::cameraRotation)
+        .def("getDirectionVector", &FestiWorld::WorldProperties::getDirectionVector);
+
+    py::class_<FestiWorld, std::shared_ptr<FestiWorld>>(m, "FestiWorld")
+        .def("insertKeyframe", &FestiWorld::insertKeyframe)
+        .def_readwrite("world", &FestiWorld::world);
+
+    m.attr("scene") = py::cast(*scene); 
 }
 
 FestiDevice* FestiBindings::festiDevice = nullptr;
 FestiMaterials* FestiBindings::festiMaterials = nullptr;
 FS_ModelMap* FestiBindings::gameObjects = nullptr;
 FS_PointLightMap* FestiBindings::pointLights = nullptr;
+FS_World* FestiBindings::scene = nullptr;
 
 } // festi
 

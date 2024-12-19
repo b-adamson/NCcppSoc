@@ -195,6 +195,7 @@ public:
     void draw(VkCommandBuffer commandBuffer);
 
     void insertKeyframe(uint32_t idx, KeyFrameFlags flags, std::vector<uint32_t> faceIDs = {0});
+    void setFaces(ObjFaceData data, std::vector<uint32_t> faces = {FS_UNSPECIFIED});
 
     uint32_t getId() {return id;}
     static uint32_t getMaterial(std::string name) {return materialNamesMap[name];}

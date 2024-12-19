@@ -635,6 +635,7 @@ void FestiApp::setScene(std::shared_ptr<FestiWorld> scene) {
 	FestiBindings::gameObjects = &gameObjects;
 	FestiBindings::festiDevice = &festiDevice;
 	FestiBindings::pointLights = &pointLights;
+	FestiBindings::scene = &scene;
 
 	// Initialize Python interpreter
 	py::scoped_interpreter guard{};

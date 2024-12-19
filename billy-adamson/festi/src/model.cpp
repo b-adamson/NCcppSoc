@@ -364,6 +364,7 @@ void FestiModel::insertKeyframe(uint32_t frame, KeyFrameFlags flags, std::vector
         if (std::any_of(faceIDs.begin(), faceIDs.end(), [numberOfFaces](int x) {return x >= numberOfFaces;})) {
             throw std::runtime_error("Cannot keyframe on a faceID that does not exist");
         }
+		
         for (auto& id : faceIDs) {
             keyframes.objFaceData[id][frame] = faceData[id];
             keyframes.modifiedFaces.insert(id);
@@ -401,6 +402,18 @@ void FestiWorld::insertKeyframe(uint32_t frame, KeyFrameFlags flags) {
     if (flags & FS_KEYFRAME_WORLD) {
         keyframes.worldProperties[frame] = world;
     }
+}
+
+void FestiModel::setFaces(ObjFaceData data, std::vector<uint32_t> faces) {
+
+	if (faces[0] == FS_UNSPECIFIED) {
+		std::fill(faceData.begin(), faceData.end(), data);
+		return;
+	}
+
+	for (const auto& face : faces) {
+		faceData[face] = data;
+	}
 }
 
 std::vector<VkVertexInputAttributeDescription> Vertex::getAttributeDescriptions() {

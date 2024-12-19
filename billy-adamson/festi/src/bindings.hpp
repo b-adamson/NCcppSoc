@@ -150,6 +150,7 @@ public:
     static FestiMaterials* festiMaterials;
     static FS_ModelMap* gameObjects;
     static FS_PointLightMap* pointLights;
+    static FS_World* scene;
 };
 
 } // namespace festi
