@@ -353,7 +353,7 @@ glm::vec3 FestiWorld::WorldProperties::getDirectionVector() {
 		glm::cos(mainLightDirection.y) * glm::cos(mainLightDirection.x)));
 }
 
-void FestiModel::insertKeyframe(uint32_t frame, KeyFrameFlags flags, std::vector<uint32_t> faceIDs) {
+void FestiModel::insertKeyframe(uint32_t frame, uint32_t flags, std::vector<uint32_t> faceIDs) {
     if (flags & FS_KEYFRAME_POS_ROT_SCALE) {
         keyframes.transforms[frame] = transform;
         keyframes.inMotion.insert(frame);
@@ -384,7 +384,7 @@ void FestiModel::insertKeyframe(uint32_t frame, KeyFrameFlags flags, std::vector
 	}
 }
 
-void FestiPointLight::insertKeyframe(uint32_t frame, KeyFrameFlags flags) {
+void FestiPointLight::insertKeyframe(uint32_t frame, uint32_t flags) {
   	if (flags & FS_KEYFRAME_POS_ROT_SCALE) {
         keyframes.transforms[frame] = transform;
     }
@@ -398,7 +398,7 @@ void FestiPointLight::insertKeyframe(uint32_t frame, KeyFrameFlags flags) {
 	}
 }
 
-void FestiWorld::insertKeyframe(uint32_t frame, KeyFrameFlags flags) {
+void FestiWorld::insertKeyframe(uint32_t frame, uint32_t flags) {
     if (flags & FS_KEYFRAME_WORLD) {
         keyframes.worldProperties[frame] = world;
     }
@@ -406,26 +406,9 @@ void FestiWorld::insertKeyframe(uint32_t frame, KeyFrameFlags flags) {
 
 void FestiModel::setFaces(ObjFaceData& data, std::vector<uint32_t> faces) {
 
-	// std::cout << data.contrast;
-
-	// ObjFaceData lolz = data;
-
 	if (faces.empty()) throw std::runtime_error("Need to specifiy atleast one face in setFaces");
-
 	if (faces[0] == FS_UNSPECIFIED) {
-		// std::cout << lolz.contrast;
-		// std::cout << faceData.size() << std::endl;
-
-		std::cout << data.materialID << std::endl;
 		std::fill(faceData.begin(), faceData.end(), data);
-
-		// for (size_t i = 0; i < faceData.size(); ++i) {
-		// 	faceData[i] = data;
-		// }
-
-		// std::cout << faceData[0].contrast << std::endl;
-		// faceData[0] = lolz;
-		// faceData[1] = lolz;
 		return;
 	}
 
@@ -501,10 +484,10 @@ std::vector<Instance> FestiModel::getTransformsToPointsOnSurface(const AsInstanc
 			Transform baseTransform = childTransform;
 
 			// Move to parent
-			baseTransform.translation = 
-				glm::normalize(glm::vec3(parentModelMatrix[0])) * baseTransform.translation[0] + 
-				glm::normalize(glm::vec3(parentModelMatrix[1])) * baseTransform.translation[1] +
-				glm::normalize(glm::vec3(parentModelMatrix[2])) * baseTransform.translation[2];
+			// baseTransform.translation = 
+			// 	glm::normalize(glm::vec3(parentModelMatrix[0])) * baseTransform.translation[0] +
+			// 	glm::normalize(glm::vec3(parentModelMatrix[1])) * baseTransform.translation[1] +
+			// 	glm::normalize(glm::vec3(parentModelMatrix[2])) * baseTransform.translation[2];
 			baseTransform.scale *= parentTransform.scale;
 			baseTransform.rotation += parentTransform.rotation;
 

@@ -7,7 +7,6 @@
 #include "window.hpp"
 #include "camera.hpp"
 #include "materials.hpp"
-#include "bindings.hpp"
 
 // std
 #include <memory>
@@ -29,8 +28,8 @@ public:
 
     void run();
 
-	const std::string APP_NAME = "script";
-	const std::string PYTHON_PACKAGES_DIR = ".venv/lib/python3.12/site-packages";
+	// const std::string APP_NAME = "script";
+	// const std::string PYTHON_PACKAGES_DIR = ".venv/lib/python3.12/site-packages";
 
 private:
 
@@ -59,6 +58,8 @@ private:
 
 	FS_ModelMap gameObjects;
 	FS_PointLightMap pointLights;
+
+	// std::shared_ptr<FestiWorld> worldObj = std::make_shared<FestiWorld>();
 };
 
 }  // namespace festi

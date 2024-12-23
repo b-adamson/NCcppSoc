@@ -6,6 +6,8 @@
 #include <pybind11/stl_bind.h>
 #include <pybind11/complex.h>
 
+#include <iostream>
+
 PYBIND11_MAKE_OPAQUE(std::vector<festi::ObjFaceData>);
 
 namespace festi {
@@ -80,6 +82,11 @@ void FestiBindings::init(py::module_& m) {
 
     py::class_<ObjFaceData, std::shared_ptr<ObjFaceData>>(m, "ObjFaceData")
         .def(py::init<>())
+        .def(py::init<uint32_t, float, float, glm::vec2>(),
+            py::arg("matID"),
+            py::arg("sat"),
+            py::arg("con"),
+            py::arg("uv"))
         .def_readwrite("materialID", &ObjFaceData::materialID)
         .def_readwrite("saturation", &ObjFaceData::saturation)
         .def_readwrite("contrast", &ObjFaceData::contrast)
@@ -109,7 +116,6 @@ void FestiBindings::init(py::module_& m) {
             &FestiModel::setFaces,
             py::arg("data"), py::arg("faces") = std::vector<uint32_t>{FS_UNSPECIFIED});
         
-
     py::class_<FestiPointLight, std::shared_ptr<FestiPointLight>>(m, "PointLight")
         .def_static("createPointLight", 
             [this](float radius, glm::vec4 color) {
@@ -127,16 +133,18 @@ void FestiBindings::init(py::module_& m) {
         .def_readwrite("mainLightColour", &FestiWorld::WorldProperties::mainLightColour)
         .def_readwrite("mainLightDirection", &FestiWorld::WorldProperties::mainLightDirection)
         .def_readwrite("ambientColour", &FestiWorld::WorldProperties::ambientColour)
-        .def_readwrite("clipDist", &FestiWorld::WorldProperties::clipDist)
+        .def_readwrite("lightClip", &FestiWorld::WorldProperties::lightClip)
         .def_readwrite("cameraPosition", &FestiWorld::WorldProperties::cameraPosition)
         .def_readwrite("cameraRotation", &FestiWorld::WorldProperties::cameraRotation)
+        .def_readwrite("fov", &FestiWorld::WorldProperties::fov)
+        .def_readwrite("clip", &FestiWorld::WorldProperties::clip)
         .def("getDirectionVector", &FestiWorld::WorldProperties::getDirectionVector);
 
     py::class_<FestiWorld, std::shared_ptr<FestiWorld>>(m, "FestiWorld")
         .def("insertKeyframe", &FestiWorld::insertKeyframe)
         .def_readwrite("world", &FestiWorld::world);
 
-    m.attr("scene") = py::cast(*scene); 
+    m.attr("scene") = py::cast(*scene);
 }
 
 FestiDevice* FestiBindings::festiDevice = nullptr;

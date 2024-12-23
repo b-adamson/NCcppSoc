@@ -67,14 +67,13 @@ struct ObjFaceData {
     // Explicitly define constructors since we have explicitly defined copy constructor to avoid memory issues (ObjFaceData is in 
     // a std::vector in model, unlike other keyframeable properties)
     ObjFaceData() = default;
+    ObjFaceData(uint32_t matID, float sat, float con, glm::vec2 uv)
+        : materialID(matID), saturation(sat), contrast(con), uvOffset(uv) {}
+    // For pybind only \/\/\/\/\/
+    ObjFaceData(uint32_t matID, float sat, float con, std::vector<float> uv)
+        : materialID(matID), saturation(sat), contrast(con), uvOffset(uv[0], uv[1]) {}
     ObjFaceData(const ObjFaceData& other) = default;
-    // : saturation(other.saturation),
-    //   contrast(other.contrast),
-    //   uvOffset(other.uvOffset) {}
     ObjFaceData(ObjFaceData&& other) noexcept = default;
-    // : saturation(std::move(other.saturation)),
-    //   contrast(std::move(other.contrast)),
-    //   uvOffset(std::move(other.uvOffset)) {}
     ObjFaceData& operator=(const ObjFaceData& other) {
         if (this != &other) {
             materialID = other.materialID;
@@ -129,7 +128,7 @@ private:
         VkImage image, 
         const std::vector<uint8_t>& imageData, 
         uint32_t width, 
-        uint32_t height);;
+        uint32_t height);
 
     uint32_t appendTextureMap(tinyobj::material_t& matData, const std::string& imgDirPath, const FS_ImageMapFlags flag);
 

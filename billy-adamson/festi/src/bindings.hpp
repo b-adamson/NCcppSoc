@@ -1,6 +1,7 @@
 #pragma once
 
 #include "model.hpp"
+// #include "app.hpp"
 
 // lib
 #include <pybind11/pybind11.h>
@@ -13,6 +14,7 @@
 
 // std
 #include <vector>
+#include <iostream>
 
 namespace py = pybind11;
 
@@ -41,7 +43,7 @@ public:
         return py::array_t<float>(
             {2},                         
             {sizeof(float)},             
-            &src[0],                     
+            &src[0],
             py::capsule(&src, [](void*) {}) 
         ).release();
     }
@@ -144,6 +146,7 @@ namespace festi {
 class FestiBindings {
 public:
     FestiBindings() {};
+
     void init(py::module_& m);
 
     static FestiDevice* festiDevice;

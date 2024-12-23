@@ -194,7 +194,7 @@ public:
     void bind(VkCommandBuffer commandBuffer);
     void draw(VkCommandBuffer commandBuffer);
 
-    void insertKeyframe(uint32_t idx, KeyFrameFlags flags, std::vector<uint32_t> faceIDs = {0});
+    void insertKeyframe(uint32_t idx, uint32_t flags, std::vector<uint32_t> faceIDs = {0});
     void setFaces(ObjFaceData& data, std::vector<uint32_t> faces = {FS_UNSPECIFIED});
 
     uint32_t getId() {return id;}
@@ -285,7 +285,7 @@ public:
         }
     } point;
 
-    void insertKeyframe(uint32_t idx, KeyFrameFlags flags);
+    void insertKeyframe(uint32_t idx, uint32_t flags);
 
     static std::shared_ptr<FestiPointLight> createPointLight(FS_PointLightMap& gameObjects,
         float radius = 0.1f, glm::vec4 color = glm::vec4(1.f));
@@ -321,7 +321,7 @@ public:
     Transform transform;
     bool visibility = true;
 
-    void insertKeyframe(uint32_t frame, KeyFrameFlags flags);
+    void insertKeyframe(uint32_t frame, uint32_t flags);
 
     void setWorldToCurrentKeyFrame(const uint32_t frame);
 
@@ -329,9 +329,12 @@ public:
         glm::vec4 mainLightColour = {.0f, .0f, .0f, .0f};
         glm::vec2 mainLightDirection = {.0f, .0f};
         glm::vec4 ambientColour = {.1f, .1f, .1f, 1.f};
-        glm::vec2 clipDist = {-10.f, 20.f};
+        glm::vec2 lightClip = {-10.f, 20.f};
         glm::vec3 cameraPosition = {.0f, .0f, .0f};
         glm::vec3 cameraRotation = {.0f, .0f, .0f};
+
+        float fov;
+        glm::vec2 clip;
 
         glm::vec3 getDirectionVector();
 
@@ -339,9 +342,10 @@ public:
             return mainLightColour == other.mainLightColour && 
                 mainLightDirection == other.mainLightDirection && 
                 ambientColour == other.ambientColour &&
-                clipDist == other.clipDist &&
+                lightClip == other.lightClip &&
                 cameraPosition == other.cameraPosition &&
-                cameraRotation == other.cameraRotation;
+                cameraRotation == other.cameraRotation &&
+                fov == other.fov && clip == other.clip;
             }
 
         bool operator!=(const WorldProperties& other) {
