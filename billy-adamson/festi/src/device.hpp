@@ -16,8 +16,10 @@ constexpr uint32_t FS_UNSPECIFIED = UINT32_MAX;
 constexpr uint32_t FS_MAXIMUM_IMAGE_DESCRIPTORS = 500;
 constexpr uint32_t FS_MAX_LIGHTS = 30;
 constexpr uint32_t FS_MAX_FRAMES_IN_FLIGHT = 2;
-constexpr uint32_t MAX_FPS = 120;
-constexpr int SCENE_LENGTH = 300;
+constexpr uint32_t FS_MAX_FPS = 120;
+constexpr int FS_SCENE_LENGTH = 300;
+const std::string FS_APP_NAME = "script";
+const std::string FS_PYTHON_PACKAGES_DIR = ".venv/lib/python3.12/site-packages";
 
 struct SwapChainSupportDetails {
     VkSurfaceCapabilitiesKHR capabilities;
@@ -33,7 +35,7 @@ struct QueueFamilyIndices {
     bool isComplete() { return graphicsFamilyHasValue && presentFamilyHasValue; }
 };
 
-  struct PipelineConfigInfo {
+struct PipelineConfigInfo {
     PipelineConfigInfo() = default;
     PipelineConfigInfo(const PipelineConfigInfo&) = delete;
     PipelineConfigInfo& operator=(const PipelineConfigInfo&) = delete;

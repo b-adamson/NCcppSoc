@@ -155,6 +155,7 @@ std::shared_ptr<FestiModel> FestiModel::createModelFromFile(
 					ObjFaceData objFaceData{};
 					objFaceData.materialID = id;
 					faceData[j] = objFaceData;
+					// faceData[j].materialID = id;
 				}
 			}
 		}
@@ -379,7 +380,6 @@ void FestiModel::insertKeyframe(uint32_t frame, KeyFrameFlags flags, std::vector
     }
 
 	if (flags & FS_KEYFRAME_VISIBILITY) {
-		// if (world != nullptr) throw std::runtime_error("Cannot change visibility of the scene");
 		keyframes.visibility[frame] = visibility;
 	}
 }
@@ -404,16 +404,42 @@ void FestiWorld::insertKeyframe(uint32_t frame, KeyFrameFlags flags) {
     }
 }
 
-void FestiModel::setFaces(ObjFaceData data, std::vector<uint32_t> faces) {
+void FestiModel::setFaces(ObjFaceData& data, std::vector<uint32_t> faces) {
+
+	// std::cout << data.contrast;
+
+	// ObjFaceData lolz = data;
+
+	if (faces.empty()) throw std::runtime_error("Need to specifiy atleast one face in setFaces");
 
 	if (faces[0] == FS_UNSPECIFIED) {
+		// std::cout << lolz.contrast;
+		// std::cout << faceData.size() << std::endl;
+
+		std::cout << data.materialID << std::endl;
 		std::fill(faceData.begin(), faceData.end(), data);
+
+		// for (size_t i = 0; i < faceData.size(); ++i) {
+		// 	faceData[i] = data;
+		// }
+
+		// std::cout << faceData[0].contrast << std::endl;
+		// faceData[0] = lolz;
+		// faceData[1] = lolz;
 		return;
 	}
+
+	int numberOfFaces = getNumberOfFaces();
+	if (std::any_of(faces.begin(), faces.end(), [numberOfFaces](int x) {return x >= numberOfFaces;})) {
+        throw std::runtime_error("Cannot set a faceID that does not exist");
+    }
 
 	for (const auto& face : faces) {
 		faceData[face] = data;
 	}
+
+
+	// faceData[45] = data;
 }
 
 std::vector<VkVertexInputAttributeDescription> Vertex::getAttributeDescriptions() {
@@ -679,7 +705,7 @@ bool updatePropertyIfNeeded(T& currentProperty, const T& newProperty, bool condi
 }
 
 void FestiModel::setObjectToCurrentKeyFrame(uint32_t MssboOffset, std::unique_ptr<FestiBuffer>& MssboBuffer, uint32_t frame) {
-    const bool atEndOrStart = (frame == 0 || static_cast<int>(frame) == SCENE_LENGTH - 1);
+    const bool atEndOrStart = (frame == 0 || static_cast<int>(frame) == FS_SCENE_LENGTH - 1);
 
     // Update visibility
     auto visibilityKF = getKeyframeForFrame(frame, keyframes.visibility);
@@ -694,8 +720,6 @@ void FestiModel::setObjectToCurrentKeyFrame(uint32_t MssboOffset, std::unique_pt
         auto materialKF = getKeyframeForFrame(frame, keyframes.objFaceData[faceID]);
         updatePropertyIfNeeded(faceData[faceID], materialKF->second, atEndOrStart);
     }
-
-	// std::cout << keyframes.transforms.size();
 
     // Write to buffer if any face data has changed
     auto data = faceData.data();
@@ -716,7 +740,7 @@ void FestiModel::setObjectToCurrentKeyFrame(uint32_t MssboOffset, std::unique_pt
 }
 
 void FestiPointLight::setPointLightToCurrentKeyFrame(uint32_t frame) {
-    const bool atEndOrStart = (frame == 0 || static_cast<int>(frame) == SCENE_LENGTH - 1);
+    const bool atEndOrStart = (frame == 0 || static_cast<int>(frame) == FS_SCENE_LENGTH - 1);
 
     // Update visibility
     auto visibilityKF = getKeyframeForFrame(frame, keyframes.visibility);
@@ -732,7 +756,7 @@ void FestiPointLight::setPointLightToCurrentKeyFrame(uint32_t frame) {
 }
 
 void FestiWorld::setWorldToCurrentKeyFrame(uint32_t frame) {
-    const bool atEndOrStart = (frame == 0 || static_cast<int>(frame) == SCENE_LENGTH - 1);
+    const bool atEndOrStart = (frame == 0 || static_cast<int>(frame) == FS_SCENE_LENGTH - 1);
 
     // Update world properties
     auto worldKF = getKeyframeForFrame(frame, keyframes.worldProperties);

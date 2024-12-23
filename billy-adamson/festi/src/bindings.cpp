@@ -1,13 +1,19 @@
 #include "bindings.hpp"
 
-#include <iostream>
+// lib
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
+#include <pybind11/stl_bind.h>
+#include <pybind11/complex.h>
+
+PYBIND11_MAKE_OPAQUE(std::vector<festi::ObjFaceData>);
 
 namespace festi {
 
 void FestiBindings::init(py::module_& m) {
     m.doc() = "Python bindings for festi";
+
+    m.def("material", &FestiModel::getMaterial);
 
     py::enum_<KeyFrameFlags>(m, "KEYFRAME", py::arithmetic())
         .value("POS_ROT_SCALE", FS_KEYFRAME_POS_ROT_SCALE)
@@ -51,8 +57,10 @@ void FestiBindings::init(py::module_& m) {
         .def_readwrite("jengaFactor", &FestiModel::AsInstanceData::BuildingInstancesSettings::jengaFactor)
         .def_readwrite("seed", &FestiModel::AsInstanceData::BuildingInstancesSettings::seed);
 
+    py::bind_vector<std::vector<ObjFaceData>>(m, "test");
     py::class_<FestiModel::AsInstanceData>(m, "AsInstanceData")
         .def(py::init<>())
+        .def_readwrite("parentObject", &FestiModel::AsInstanceData::parentObject)
         .def_readwrite("random", &FestiModel::AsInstanceData::random)
         .def_readwrite("building", &FestiModel::AsInstanceData::building)
         .def_readwrite("layers", &FestiModel::AsInstanceData::layers)
@@ -70,8 +78,7 @@ void FestiBindings::init(py::module_& m) {
         .def_readwrite("specularTextureIndex", &Material::specularTextureIndex)
         .def_readwrite("normalTextureIndex", &Material::normalTextureIndex);
 
-    py::bind_vector<std::vector<ObjFaceData>>(m, "ObjFaceDataVector");
-    py::class_<ObjFaceData>(m, "ObjFaceData")
+    py::class_<ObjFaceData, std::shared_ptr<ObjFaceData>>(m, "ObjFaceData")
         .def(py::init<>())
         .def_readwrite("materialID", &ObjFaceData::materialID)
         .def_readwrite("saturation", &ObjFaceData::saturation)
@@ -91,7 +98,7 @@ void FestiBindings::init(py::module_& m) {
              py::arg("idx"), py::arg("flags"), py::arg("faceIDs") = std::vector<uint32_t>{0})
         .def_readwrite("transform", &FestiModel::transform)
         .def_readwrite("asInstanceData", &FestiModel::asInstanceData)
-        .def_readwrite("faceData", &FestiModel::faceData)
+        .def_readwrite("faceData", &FestiModel::faceData, py::return_value_policy::reference_internal)
         .def_readwrite("visibility", &FestiModel::visibility)
         .def("getId", &FestiModel::getId)
         .def("getMaterial", &FestiModel::getMaterial)
@@ -116,7 +123,6 @@ void FestiBindings::init(py::module_& m) {
         .def_readwrite("transform", &FestiPointLight::transform)
         .def("getId", &FestiPointLight::getId);
 
-    // Bind the WorldProperties struct
     py::class_<FestiWorld::WorldProperties>(m, "WorldProperties")
         .def_readwrite("mainLightColour", &FestiWorld::WorldProperties::mainLightColour)
         .def_readwrite("mainLightDirection", &FestiWorld::WorldProperties::mainLightDirection)

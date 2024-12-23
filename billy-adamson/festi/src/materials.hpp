@@ -64,6 +64,35 @@ struct ObjFaceData {
     bool operator!=(const ObjFaceData& other) const {
         return !(*this == other);
     }
+    // Explicitly define constructors since we have explicitly defined copy constructor to avoid memory issues (ObjFaceData is in 
+    // a std::vector in model, unlike other keyframeable properties)
+    ObjFaceData() = default;
+    ObjFaceData(const ObjFaceData& other) = default;
+    // : saturation(other.saturation),
+    //   contrast(other.contrast),
+    //   uvOffset(other.uvOffset) {}
+    ObjFaceData(ObjFaceData&& other) noexcept = default;
+    // : saturation(std::move(other.saturation)),
+    //   contrast(std::move(other.contrast)),
+    //   uvOffset(std::move(other.uvOffset)) {}
+    ObjFaceData& operator=(const ObjFaceData& other) {
+        if (this != &other) {
+            materialID = other.materialID;
+            saturation = other.saturation;
+            contrast = other.contrast;
+            uvOffset = other.uvOffset;
+        }
+        return *this;
+    }
+    ObjFaceData& operator=(ObjFaceData&& other) noexcept {
+        if (this != &other) {
+            saturation = std::move(other.saturation);
+            contrast = std::move(other.contrast);
+            uvOffset = std::move(other.uvOffset);
+            materialID = std::move(other.materialID);
+        }
+        return *this;
+    }
 };
 
 struct MaterialsSSBO {

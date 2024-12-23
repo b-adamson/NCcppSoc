@@ -31,8 +31,6 @@ void FestiApp::run() {
 
 	// Instantiate world object
 	auto worldObj = std::make_shared<FestiWorld>();
-	// worldObj->world = std::make_unique<FestiModel::WorldProperties>();
-	// FestiModel::addObjectToSceneWithName(worldObj, gameObjects);
 
 	// Create scene objects and setup
 	setScene(worldObj);
@@ -142,7 +140,7 @@ void FestiApp::run() {
 	// camera.setPerspectiveProjection(glm::radians(25.f), festiRenderer.getAspectRatio(), .1f, 1000.f);
 
 	auto lastFrameTime = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<float> frameDuration{1.0f / MAX_FPS};
+	std::chrono::duration<float> frameDuration{1.0f / FS_MAX_FPS};
 
 	// ENGINE MAIN LOOP
 	while (!festiWindow.shouldClose()) {
@@ -311,13 +309,13 @@ void FestiApp::setScene(std::shared_ptr<FestiWorld> scene) {
 	// scene->world.mainLightDirection = {.4f, 0.f};
 	// scene->insertKeyframe(0, FS_KEYFRAME_WORLD);
 
-	// for (uint32_t f = 0; f < (uint32_t)SCENE_LENGTH; f++) {
+	// for (uint32_t f = 0; f < (uint32_t)FS_SCENE_LENGTH; f++) {
 	// 	auto frameRND = dis(gen);		
 	// 	floor->transform.rotation.y += glm::pi<float>() / 150;
 	// 	floor->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
 
 	// 	arch->transform.rotation.y += glm::pi<float>() / 150;
-	// 	arch->transform.scale = {frameRND * 0.01 + 0.145f, .15f - (SCENE_LENGTH / 3000.f) + (f / 3000.f), frameRND + 0.5f};
+	// 	arch->transform.scale = {frameRND * 0.01 + 0.145f, .15f - (FS_SCENE_LENGTH / 3000.f) + (f / 3000.f), frameRND + 0.5f};
 	// 	arch->transform.scale.y += (frameRND - 0.5) * .1f;
 	// 	arch->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
 
@@ -402,10 +400,16 @@ void FestiApp::setScene(std::shared_ptr<FestiWorld> scene) {
 	// 	arch->insertKeyframe(f, FS_KEYFRAME_FACE_MATERIALS, arch->ALL_FACES());
 
 	// 	auto offset = glm::vec2(((int)(dis(gen) * 8)) / 8.f, ((int)(dis(gen) * 5)) / 5.f);
-	// 	for (const auto& face : {0, 2, 6, 8}) {
-	// 		door->faceData[face].uvOffset = offset;
-	// 		door->faceData[face].saturation = 2.f;
-	// 	}
+	// 	// for (const auto& face : {0, 2, 6, 8}) {
+	// 	// 	door->faceData[face].uvOffset = offset;
+	// 	// 	door->faceData[face].saturation = 2.f;
+	// 	// }
+	// 	// door->insertKeyframe(f, FS_KEYFRAME_FACE_MATERIALS, {0, 2, 6, 8});
+
+	// 	ObjFaceData test;
+	// 	test.saturation = 2;
+	// 	test.materialID = material("doors");
+	// 	door->setFaces(test);
 	// 	door->insertKeyframe(f, FS_KEYFRAME_FACE_MATERIALS, {0, 2, 6, 8});
 
 	// 	for (uint32_t i = 0; i < streetLight->getNumberOfFaces(); ++i) {
@@ -625,7 +629,7 @@ void FestiApp::setScene(std::shared_ptr<FestiWorld> scene) {
 	if (_putenv(std::string("PYTHONHOME=" + PYTHONHOME).c_str()) != 0) throw std::runtime_error("Failed to set PYTHONHOME environment variable");
 	if (_putenv(std::string("PYTHONPATH=" + PYTHONPATH).c_str()) != 0) throw std::runtime_error("Failed to set PYTHONPATH environment variable");
 
-	// Add additional DLL dir (this caused issues without for some reason)
+	// Add additional DLL dir (this caused issues without for some reason with mingw)
 	std::string pythonBinPath = std::string(PYTHONHOME) + "\\bin";
 	if (!SetDllDirectoryA(pythonBinPath.c_str())) {
 		std::cerr << "Failed to find /bin/ in PYTHONHOME. Some python libraries may not import correctly";
@@ -665,11 +669,11 @@ void FestiApp::setScene(std::shared_ptr<FestiWorld> scene) {
 void FestiApp::checkInputsForSceneUpdates() {
     runOnceIfKeyPressed(GLFW_KEY_UP, [this]() { 
 		sceneClockFrequency = std::floor(sceneClockFrequency / 1.2); 
-		sceneClockFrequency = glm::clamp(sceneClockFrequency, (uint32_t)1, MAX_FPS);
+		sceneClockFrequency = glm::clamp(sceneClockFrequency, (uint32_t)1, FS_MAX_FPS);
 	});
     runOnceIfKeyPressed(GLFW_KEY_DOWN, [this]() { 
 		sceneClockFrequency = std::ceil(sceneClockFrequency * 1.2); 
-		sceneClockFrequency = glm::clamp(sceneClockFrequency, (uint32_t)1, MAX_FPS);
+		sceneClockFrequency = glm::clamp(sceneClockFrequency, (uint32_t)1, FS_MAX_FPS);
 	});
     runOnceIfKeyPressed(GLFW_KEY_SPACE, [this]() {isRunning = !isRunning;});
 }
@@ -687,10 +691,10 @@ void FestiApp::setSceneToCurrentKeyFrame(
 		|| right || left) {
 		if (right) {
 			sceneFrameIdx--; 
-			if (sceneFrameIdx < 0) {sceneFrameIdx = SCENE_LENGTH - 1;}
+			if (sceneFrameIdx < 0) {sceneFrameIdx = FS_SCENE_LENGTH - 1;}
 		} else {
 			sceneFrameIdx++;
-			if (sceneFrameIdx == SCENE_LENGTH) {sceneFrameIdx = 0;}
+			if (sceneFrameIdx == FS_SCENE_LENGTH) {sceneFrameIdx = 0;}
 		}
 
 		for (size_t i = 0; i < gameObjects.size(); i++) {
