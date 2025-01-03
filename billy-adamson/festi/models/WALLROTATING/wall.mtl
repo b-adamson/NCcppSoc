@@ -1,9 +1,0 @@
-newmtl graybrick
-Ka 1.000 1.000 1.000  # Ambient color (white)
-Kd 0.580 0.000 0.827  # Diffuse color (violet)
-Ks 0.000 0.000 0.000  # Specular color (black)
-d 1.0                 # Dissolve (opacity), 1.0 means fully opaque
-Ns 512.0              # Specular exponent, controls the shininess
-map_Kd graybrick_diffuse
-map_Ks graybrick_specular
-norm graybrick_normal
