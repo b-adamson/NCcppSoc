@@ -17,8 +17,10 @@ constexpr uint32_t FS_MAXIMUM_IMAGE_DESCRIPTORS = 500;
 constexpr uint32_t FS_MAX_LIGHTS = 30;
 constexpr uint32_t FS_MAX_FRAMES_IN_FLIGHT = 2;
 constexpr uint32_t FS_MAX_FPS = 120;
+
 constexpr int FS_SCENE_LENGTH = 300;
-const std::string FS_PYTHON_PACKAGES_DIR = ".venv/lib/python3.12/site-packages";
+const std::string PYTHONPATH = ".venv/lib/python3.12/site-packages";
+const std::string PYTHONHOME = "C:/msys64/mingw64";
 
 struct SwapChainSupportDetails {
     VkSurfaceCapabilitiesKHR capabilities;

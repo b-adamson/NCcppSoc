@@ -41,4 +41,20 @@ bool loadImageFromFile(const std::string& filePath, uint32_t& width, uint32_t& h
     return true;
 }
 
+bool runOnceIfKeyPressed(FestiWindow& window, int key, std::function<void()> onPress) {
+	static std::unordered_map<int, bool> keyWasPressedMap;
+	bool& keyWasPressed = keyWasPressedMap[key];
+
+	if (glfwGetKey(window.getGLFWwindow(), key) == GLFW_PRESS) {
+		if (keyWasPressed == false) {
+			onPress();
+			keyWasPressed = true;
+			return true; 
+		}
+	} else {
+		keyWasPressed = false;
+	}
+	return false;
+};
+
 } // namespace festi

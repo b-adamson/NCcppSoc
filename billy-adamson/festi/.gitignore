@@ -1,4 +1,5 @@
 /bin/
 /.vscode/
 /.venv/
+/src/scripts/__pycache__/
 *.exe

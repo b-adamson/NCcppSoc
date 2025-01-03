@@ -28,7 +28,7 @@
 namespace py = pybind11;
 namespace festi {
 
-const std::string FS_APP_NAME = "buildings";
+const std::string FS_APP_NAME = "wall";
 
 void FestiApp::run() {
 
@@ -221,98 +221,7 @@ void FestiApp::run() {
 }
 
 void FestiApp::setScene(std::shared_ptr<FestiWorld> scene) {
-
-	// TEST SCENE:
-
-	// auto kida = FestiModel::createModelFromFile(
-	// 	festiDevice, festiMaterials, gameObjects, "models/TEST/kida.obj", "models/TEST", "materials/TEST");
-	// kida->transform.translation = {0.f, -.5f, 0.f};
-	// kida->transform.scale = {1.f, 1.f, 1.f};
-	// kida->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
-
-	// auto cube = FestiModel::createModelFromFile(
-	// 	festiDevice, festiMaterials, gameObjects, "models/TEST/cube.obj", "models/TEST", "materials/TEST");
-	// cube->transform.translation = {0.f, .0f, 0.f};
-	// cube->transform.scale = {0.1f, 0.1f, 0.1f};
-	// cube->insertKeyframe(0, FS_KEYFRAME_POS_ROT_SCALE);
-	
-    // std::vector<glm::vec3> lightColors = {
-    //     {1.0f, 0.0f, 0.0f}, // Red
-    //     {0.0f, 1.0f, 0.0f}, // Green
-    //     {0.0f, 0.0f, 1.0f}, // Blue
-    //     {1.0f, 1.0f, 0.0f}, // Yellow
-    //     {1.0f, 0.5f, 0.0f}, // Orange
-    //     {0.5f, 0.0f, 1.0f}  // Purple
-    // };
-
-	// std::array<FS_PointLight, 6> lights;
-
-	// for (size_t i = 0; i < lightColors.size(); i++) {
-	// 	lights[i] = FestiPointLight::createPointLight(pointLights, .2f, glm::vec4(lightColors[i], .5f));
-	// 	auto rotateLight = glm::rotate(glm::mat4(1.f), i * glm::two_pi<float>() / lightColors.size(), {0.f, -1.f, 0.f});
-	// 	lights[i]->transform.translation = glm::vec3(rotateLight * glm::vec4(-1.f, .0f, -1.f, 1.f));
-	// }
-
-	// auto rotateLight = glm::rotate(glm::mat4(1.f), glm::pi<float>() / 50, {0.f, -1.f, 0.f});
-
-	// FestiModel::AsInstanceData asInstanceData1{};
-	// asInstanceData1.parentObject = kida;
-	// asInstanceData1.random.density = 0.f;
-	// asInstanceData1.random.randomness = .3f;
-	// asInstanceData1.layers = 1;
-	// asInstanceData1.layerSeparation = 5.f;
-	// asInstanceData1.random.solidity = 1.f;
-	// asInstanceData1.building.columnDensity = 3.f;
-	// asInstanceData1.building.alignToEdgeIdx = 0;
-	// // asInstanceData1.random.minOffset.scale = {4.0f, 1.f, 5.0f};
-	// // asInstanceData1.random.maxOffset.scale = {4.0f, 1.f, 5.0f};
-	// // asInstanceData1.maxOffset.rotation = {10.0f, 10.0f, 10.0f};
-	// asInstanceData1.building.strutsPerColumnRange = {3,3};
-	// asInstanceData1.building.jengaFactor = 0.f;
-
-	// cube->asInstanceData = asInstanceData1;
-	// cube->insertKeyframe(0, FS_KEYFRAME_AS_INSTANCE);
-
-	// for (uint32_t f = 0; f < (uint32_t)SCENE_LENGTH; f++) {
-
-	// 	// for (size_t i = 0; i < 12; i++) {
-	// 	// 	gameObjects[idOf["cube"]]->faceData[i].uvOffset = {f * 0.1, f * 0.1};}
-	// 	// gameObjects[idOf["cube"]]->insertKeyframe(f, FS_KEYFRAME_FACE_MATERIALS, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11});
-
-	// 	// FestiModel::AsInstanceData asInstanceData1{};
-	// 	// asInstanceData1.parentObject = gameObjects[idOf["kida"]];
-	// 	// asInstanceData1.density = (float)(f * 0.1);
-	// 	// asInstanceData1.maxOffset.scale = {1.0f, 10.0f, 1.0f};
-	// 	// asInstanceData1.maxOffset.rotation = {10.0f, 10.0f, 1.0f};
-
-	// 	cube->asInstanceData.random.seed = f;
-	// 	// cube->insertKeyframe(f, FS_KEYFRAME_AS_INSTANCE);
-
-	// 	kida->transform.rotation.y += 0.02;
-	// 	// kida->transform.rotation.x += 0.02;
-	// 	// kida->transform.rotation.z += 0.02;
-	// 	// kida->transform.translation.z += 0.001;
-	// 	// kida->transform.translation.y += 0.01;
-	// 	kida->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
-
-	// 	cube->transform.translation.y += 0.01f;
-	// 	// cube->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
-
-	// 	// float lol = (float)f / 255.f ;
-	// 	// scene->world->colour = glm::vec4(lol, lol * 2, 238.f / 255.f, lol);
-	// 	// scene->insertKeyframe(f, FS_KEYFRAME_WORLD);
-
-	// 	for (size_t i = 0; i < 6; i++) {
-	// 		lights[i]->transform.translation = glm::vec3(rotateLight * glm::vec4(lights[i]->transform.translation, 1.f));
-	// 		lights[i]->insertKeyframe(f, FS_KEYFRAME_POS_ROT_SCALE);
-	// 	}
-	// }
-
-	// binding
-
 	// Add relevant environment variables
-	std::string PYTHONHOME = "C:/msys64/mingw64";
-	std::string PYTHONPATH = "C:/Users/beada/dev/Projects/festi/billy-adamson/festi/.venv/lib/python3.12/site-packages";
 
 	if (_putenv(std::string("PYTHONHOME=" + PYTHONHOME).c_str()) != 0) throw std::runtime_error("Failed to set PYTHONHOME environment variable");
 	if (_putenv(std::string("PYTHONPATH=" + PYTHONPATH).c_str()) != 0) throw std::runtime_error("Failed to set PYTHONPATH environment variable");
@@ -338,7 +247,7 @@ void FestiApp::setScene(std::shared_ptr<FestiWorld> scene) {
 	std::string script_dir = "src/scripts";
 	sys.attr("path").attr("append")(bin_dir); 
 	sys.attr("path").attr("append")(script_dir);
-	sys.attr("path").attr("append")(FS_PYTHON_PACKAGES_DIR);
+	sys.attr("path").attr("append")(PYTHONPATH);
 
 	std::string script_path = script_dir + "/" + FS_APP_NAME + ".py";
 	if (std::filesystem::exists(script_path)) {
@@ -355,15 +264,15 @@ void FestiApp::setScene(std::shared_ptr<FestiWorld> scene) {
 }
 	
 void FestiApp::checkInputsForSceneUpdates() {
-    runOnceIfKeyPressed(GLFW_KEY_UP, [this]() { 
+    runOnceIfKeyPressed(festiWindow, GLFW_KEY_UP, [this]() { 
 		sceneClockFrequency = std::floor(sceneClockFrequency / 1.2); 
 		sceneClockFrequency = glm::clamp(sceneClockFrequency, (uint32_t)1, FS_MAX_FPS);
 	});
-    runOnceIfKeyPressed(GLFW_KEY_DOWN, [this]() { 
+    runOnceIfKeyPressed(festiWindow, GLFW_KEY_DOWN, [this]() { 
 		sceneClockFrequency = std::ceil(sceneClockFrequency * 1.2); 
 		sceneClockFrequency = glm::clamp(sceneClockFrequency, (uint32_t)1, FS_MAX_FPS);
 	});
-    runOnceIfKeyPressed(GLFW_KEY_SPACE, [this]() {isRunning = !isRunning;});
+    runOnceIfKeyPressed(festiWindow, GLFW_KEY_SPACE, [this]() {isRunning = !isRunning;});
 }
 
 void FestiApp::setSceneToCurrentKeyFrame(
@@ -372,12 +281,12 @@ void FestiApp::setSceneToCurrentKeyFrame(
 	FS_World world
 	) {
 
-	bool right = runOnceIfKeyPressed(GLFW_KEY_RIGHT, [this]() {});
-	bool left = runOnceIfKeyPressed(GLFW_KEY_LEFT, [this]() {});
+	bool right = runOnceIfKeyPressed(festiWindow, GLFW_KEY_RIGHT, [this]() {});
+	bool left = runOnceIfKeyPressed(festiWindow, GLFW_KEY_LEFT, [this]() {});
 
 	if ((((engineFrameIdx % sceneClockFrequency == 0) && (sceneClockFrequency != 64) && isRunning )|| sceneFrameIdx == -1) 
 		|| right || left) {
-		if (right) {
+		if (left) {
 			sceneFrameIdx--; 
 			if (sceneFrameIdx < 0) {sceneFrameIdx = FS_SCENE_LENGTH - 1;}
 		} else {
@@ -394,21 +303,5 @@ void FestiApp::setSceneToCurrentKeyFrame(
 		world->setWorldToCurrentKeyFrame(sceneFrameIdx);
 	}
 }
-
-bool FestiApp::runOnceIfKeyPressed(int key, std::function<void()> onPress) {
-	static std::unordered_map<int, bool> keyWasPressedMap;
-	bool& keyWasPressed = keyWasPressedMap[key];
-
-	if (glfwGetKey(festiWindow.getGLFWwindow(), key) == GLFW_PRESS) {
-		if (keyWasPressed == false) {
-			onPress();
-			keyWasPressed = true;
-			return true; 
-		}
-	} else {
-		keyWasPressed = false;
-	}
-	return false;
-};
 
 }  // namespace festi

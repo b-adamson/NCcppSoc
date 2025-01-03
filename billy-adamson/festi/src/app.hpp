@@ -27,10 +27,6 @@ public:
     FestiApp &operator=(const FestiApp &&) = delete;
 
     void run();
-
-	// const std::string APP_NAME = "script";
-	// const std::string PYTHON_PACKAGES_DIR = ".venv/lib/python3.12/site-packages";
-
 private:
 
 	uint32_t material(std::string name) {return FestiModel::getMaterial(name);}
@@ -43,7 +39,6 @@ private:
 		std::unique_ptr<FestiBuffer>& MssboBuffer,
 		FS_World world
 	);
-	bool runOnceIfKeyPressed(int key, std::function<void()> onPress);
 
 	uint32_t sceneClockFrequency = 1;
 	bool isRunning = false;

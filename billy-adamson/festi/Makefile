@@ -26,7 +26,7 @@ DEFINES = -DDEBUG
 
 # Directories
 OBJ_DIR = bin
-SHADER_DIR = shaders
+SHADER_DIR = src/shaders
 SRC_DIR = src
 
 # Source and object files

@@ -24,14 +24,14 @@ public:
 	FestiSwapChain(const FestiSwapChain &) = delete;
 	FestiSwapChain &operator=(const FestiSwapChain &) = delete;
 
-	VkFramebuffer getFrameBuffer(uint32_t index) { return swapChainFramebuffers[index]; }
-	VkRenderPass getRenderPass() { return renderPass; }
-	VkImageView getImageView(uint32_t index) { return swapChainImageViews[index]; }
-	size_t imageCount() { return swapChainImages.size(); }
+	VkFramebuffer getFrameBuffer(uint32_t index) {return swapChainFramebuffers[index];}
+	VkRenderPass getRenderPass() {return renderPass;}
+	VkImageView getImageView(uint32_t index) {return swapChainImageViews[index];}
+	size_t imageCount() {return swapChainImages.size();}
 	VkFormat getSwapChainImageFormat() {return swapChainImageFormat;}
 	VkExtent2D getSwapChainExtent() {return swapChainExtent;}
-	uint32_t width() { return swapChainExtent.width; }
-	uint32_t height() { return swapChainExtent.height; }
+	uint32_t width() {return swapChainExtent.width;}
+	uint32_t height() {return swapChainExtent.height;}
 
 	float extentAspectRatio() {
 		return static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height);}

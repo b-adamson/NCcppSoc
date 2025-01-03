@@ -56,7 +56,7 @@ for i, t in enumerate(translations):
     flames[i].transform.translation = t
 
 # Initialize world properties
-fs.scene.world.mainLightColour = [255.0/255.0, 255.0/255.0, 255.0/255.0, 1.0]
+fs.scene.world.mainLightColour = [255.0/255.0, 255.0/255.0, 255.0/255.0, 1.5]
 fs.scene.world.ambientColour = [1.0, 1.0, 1.0, 0.01]
 fs.scene.world.mainLightDirection = [0.4, 0.0]
 fs.scene.world.cameraPosition = [5.0, 1.0, 0.0]

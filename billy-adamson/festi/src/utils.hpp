@@ -23,8 +23,10 @@ std::vector<char> readFile(const std::string& filepath);
 
 bool loadImageFromFile(const std::string& filePath, uint32_t& width, uint32_t& height, std::vector<uint8_t>& imageData);
 
+bool runOnceIfKeyPressed(FestiWindow& window, int key, std::function<void()> onPress);
+
 struct PointLight {
-	glm::vec4 position{};  // ignore w
+	glm::vec4 position{};  // ignore w (vec4 used for memory alignment reasons)
 	glm::vec4 color{};     // w is intensity
 };
 
